@@ -3,19 +3,17 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-export type SidebarPage = 'profiles' | 'library' | 'settings'
+export type SidebarPage = 'profiles' | 'settings'
 
 interface SidebarProps {
   activePage: SidebarPage
   profileCount: number
-  gameCount: number
   onPageChange: (page: SidebarPage) => void
 }
 
 export function Sidebar({
   activePage,
   profileCount,
-  gameCount,
   onPageChange,
 }: SidebarProps) {
   return (
@@ -44,20 +42,6 @@ export function Sidebar({
           Profiles
           <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
             {profileCount}
-          </span>
-        </Button>
-        <Button
-          type="button"
-          variant={activePage === 'library' ? 'secondary' : 'ghost'}
-          className={cn(
-            'justify-between',
-            activePage === 'library' && 'font-semibold'
-          )}
-          onClick={() => onPageChange('library')}
-        >
-          Game Library
-          <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
-            {gameCount}
           </span>
         </Button>
         <Button
