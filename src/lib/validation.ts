@@ -69,9 +69,7 @@ export const validateCompatibilityProfile = (
     !profile.bottlePath
   ) {
     issues.push(
-      warning(
-        'No Wine/Whisky prefix specified — default WINEPREFIX will be used.'
-      )
+      warning('No Wine/Whisky prefix specified — default prefix will be used.')
     )
   }
   return finalize(issues)
