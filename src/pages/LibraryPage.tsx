@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { GameForm } from '@/components/GameForm'
 import { GameLibrary } from '@/components/GameLibrary'
 import { LogViewer } from '@/components/LogViewer'
-import { Sidebar } from '@/components/Sidebar'
+import { Sidebar, type SidebarPage } from '@/components/Sidebar'
 import { backendDetails, launchGame } from '@/lib/launchers'
 import {
   appendGameLog,
@@ -11,13 +11,14 @@ import {
   saveGames,
   upsertGame,
 } from '@/lib/storage'
+import { loadProfiles } from '@/lib/profile-storage'
+import { ProfilesPage } from '@/pages/ProfilesPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import type { GameEntry } from '@/types/GameEntry'
 
-type ActivePage = 'library' | 'settings'
-
 export function LibraryPage() {
-  const [activePage, setActivePage] = useState<ActivePage>('library')
+  const [activePage, setActivePage] = useState<SidebarPage>('profiles')
+  const [profileCount] = useState(() => loadProfiles().length)
   const [games, setGames] = useState<GameEntry[]>(() => loadGames())
   const [selectedGameId, setSelectedGameId] = useState<string>()
 
@@ -52,6 +53,7 @@ export function LibraryPage() {
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <Sidebar
         activePage={activePage}
+        profileCount={profileCount}
         gameCount={games.length}
         onPageChange={setActivePage}
       />
@@ -60,6 +62,8 @@ export function LibraryPage() {
         <main className="min-w-0 flex-1 overflow-auto">
           <SettingsPage />
         </main>
+      ) : activePage === 'profiles' ? (
+        <ProfilesPage />
       ) : (
         <main className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_360px] gap-6 overflow-hidden p-6">
           <section className="min-w-0 overflow-auto pr-1">

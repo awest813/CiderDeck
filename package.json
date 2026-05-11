@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "author": "awest813",
-  "copyright": "Copyright © 2026 awest813. All rights reserved.",
-  "license": "MIT",
+  "copyright": "Copyright © 2026 awest813 and CiderDeck contributors.",
+  "license": "GPL-3.0-or-later",
   "overrides": {
     "typescript-eslint": {
       "typescript": "$typescript"
@@ -125,5 +125,5 @@
     "vitest": "^4.0.15",
     "zod-validation-error": "^4.0.2"
   },
-  "description": "A macOS compatibility launcher for managing Windows games through Wine, CrossOver, Whisky, and Apple Game Porting Toolkit."
+  "description": "An open launcher and workbench for game compatibility layers, source ports, emulators, open engines, and recompilation projects."
 }

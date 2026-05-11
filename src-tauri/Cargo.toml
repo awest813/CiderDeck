@@ -1,10 +1,11 @@
 [package]
 name = "ciderdeck"
 version = "0.1.0"
-description = "A macOS compatibility launcher for managing Windows games through Wine, CrossOver, Whisky, and Apple Game Porting Toolkit."
-authors = ["awest813"]
+description = "An open launcher and workbench for game compatibility layers, source ports, emulators, open engines, and recompilation projects."
+authors = ["awest813 and CiderDeck contributors"]
 edition = "2021"
 rust-version = "1.82"
+license = "GPL-3.0-or-later"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

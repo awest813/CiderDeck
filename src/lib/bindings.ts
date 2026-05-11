@@ -142,6 +142,53 @@ async updateQuickPaneShortcut(shortcut: string | null) : Promise<Result<null, st
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Launch a profile's executable with structured arguments.
+ * The frontend is responsible for translating profile data into a safe
+ * (program, args) pair — this command never invokes a shell.
+ */
+async launchProfileExecutable(executablePath: string, args: string[] | null, envVars: Partial<{ [key in string]: string }> | null, workingDir: string | null) : Promise<Result<ProcessOutcome, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("launch_profile_executable", { executablePath, args, envVars, workingDir }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Run a build step (e.g. `cmake --build`) for recompilation projects.
+ * `working_dir` is required to keep build artifacts scoped to the project.
+ */
+async runBuildStep(workingDir: string, program: string, args: string[], envVars: Partial<{ [key in string]: string }> | null) : Promise<Result<ProcessOutcome, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("run_build_step", { workingDir, program, args, envVars }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Append a log entry for a profile, persisted as JSON.
+ */
+async saveLog(profileId: string, entry: ProfileLogEntry) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_log", { profileId, entry }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Read all stored logs for a profile, newest first.
+ */
+async readLogs(profileId: string) : Promise<Result<ProfileLogEntry[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("read_logs", { profileId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -171,6 +218,14 @@ quick_pane_shortcut: string | null;
  */
 language: string | null }
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
+/**
+ * Result of running a launched/external process.
+ */
+export type ProcessOutcome = { stdout: string; stderr: string; exit_code: number | null }
+/**
+ * Stored log entry (mirrors the TypeScript `ProfileLogEntry`).
+ */
+export type ProfileLogEntry = { id: string; profileId: string; createdAt: string; command: string; stdout: string; stderr: string; exitCode: number | null }
 /**
  * Error types for recovery operations (typed for frontend matching)
  */
