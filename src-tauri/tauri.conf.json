@@ -48,9 +48,9 @@
     ],
     "publisher": "awest813",
     "category": "Game",
-    "shortDescription": "A macOS compatibility launcher for Windows games.",
-    "longDescription": "A macOS compatibility launcher for managing Windows games through Wine, CrossOver, Whisky, and Apple Game Porting Toolkit.",
-    "copyright": "Copyright \u00a9 2026 awest813. All rights reserved.",
+    "shortDescription": "Open launcher for compatibility layers, source ports, emulators, and recompilation projects.",
+    "longDescription": "CiderDeck is a GPL-3.0-or-later open launcher and workbench for game compatibility layers (Wine, CrossOver, Whisky, GPTK), source ports, emulators, open engines, and recompilation projects. Bring your own legally obtained game data.",
+    "copyright": "Copyright \u00a9 2026 awest813 and CiderDeck contributors. Licensed under GPL-3.0-or-later.",
     "macOS": {
       "frameworks": [],
       "minimumSystemVersion": "10.15",
