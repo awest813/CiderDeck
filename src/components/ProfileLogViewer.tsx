@@ -40,7 +40,7 @@ export function ProfileLogViewer({ profile, logs }: ProfileLogViewerProps) {
                     {new Date(entry.createdAt).toLocaleString()}
                   </time>
                 </div>
-                {entry.exitCode !== undefined ? (
+                {entry.exitCode !== null ? (
                   <p className="mb-2 text-xs">
                     Exit code:{' '}
                     <span

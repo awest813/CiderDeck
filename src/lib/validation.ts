@@ -70,8 +70,18 @@ export const validateCompatibilityProfile = (
   ) {
     const backendLabel = profile.backend === 'wine' ? 'Wine' : 'Whisky'
     issues.push(
-      warning(`No ${backendLabel} prefix specified — default prefix will be used.`)
+      warning(
+        `No ${backendLabel} prefix specified — default prefix will be used.`
+      )
     )
+  }
+  if (
+    (profile.backend === 'wine' || profile.backend === 'whisky') &&
+    !profile.wineExecutablePath
+  ) {
+    const binaryLabel =
+      profile.backend === 'wine' ? 'system wine' : 'Whisky bundled wine64'
+    issues.push(info(`No Wine executable path set — using ${binaryLabel}.`))
   }
   return finalize(issues)
 }

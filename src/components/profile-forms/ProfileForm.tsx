@@ -63,6 +63,7 @@ interface FormState {
   status: ProfileStatus
   notes: string
   // generic shared fields
+  wineExecutablePath: string
   executablePath: string
   bottlePath: string
   gameDataPath: string
@@ -139,6 +140,7 @@ const emptyState = (): FormState => ({
   title: '',
   status: 'unconfigured',
   notes: '',
+  wineExecutablePath: '',
   executablePath: '',
   bottlePath: '',
   gameDataPath: '',
@@ -225,6 +227,7 @@ const stateFromProfile = (profile: CiderDeckProfile): FormState => {
     case 'gptk': {
       const p = profile as CompatibilityProfile
       base.backend = p.backend
+      base.wineExecutablePath = p.wineExecutablePath ?? ''
       base.executablePath = p.executablePath ?? ''
       base.bottlePath = p.bottlePath ?? ''
       base.launchArgs = joinArgs(p.launchArgs)
@@ -458,6 +461,7 @@ const buildProfile = (
         category: 'compatibility-layer',
         helper,
         backend: state.backend,
+        wineExecutablePath: state.wineExecutablePath.trim() || undefined,
         executablePath: state.executablePath.trim() || undefined,
         bottlePath: state.bottlePath.trim() || undefined,
         environmentVariables: parseEnvText(state.envVars),
@@ -694,6 +698,14 @@ export function ProfileForm({
                 onChange={e => update('executablePath', e.target.value)}
               />
             </Field>
+            {(state.backend === 'wine' || state.backend === 'whisky') && (
+              <Field label="Wine executable path (optional)">
+                <Input
+                  value={state.wineExecutablePath}
+                  onChange={e => update('wineExecutablePath', e.target.value)}
+                />
+              </Field>
+            )}
             <Field label="Bottle / WINEPREFIX path">
               <Input
                 value={state.bottlePath}

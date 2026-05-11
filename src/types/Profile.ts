@@ -71,6 +71,7 @@ export interface CompatibilityProfile extends BaseProfile {
   category: 'compatibility-layer'
   helper: 'wine' | 'crossover' | 'whisky' | 'gptk'
   backend: CompatibilityBackend
+  wineExecutablePath?: string
   executablePath?: string
   bottlePath?: string
   launchArgs?: string[]
@@ -357,7 +358,7 @@ export interface ProfileLogEntry {
   command: string
   stdout: string
   stderr: string
-  exitCode?: number
+  exitCode: number | null
 }
 
 export interface LaunchRequest {
