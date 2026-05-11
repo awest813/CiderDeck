@@ -14,6 +14,7 @@ import {
   stringifyEnv,
 } from '@/components/profile-forms/shared'
 import { helperLabel } from '@/lib/helper-catalog'
+import { COMPATIBILITY_BACKENDS } from '@/types/Profile'
 import type {
   AlephOneProfile,
   CiderDeckProfile,
@@ -129,12 +130,10 @@ interface FormState {
   envVars: string
 }
 
-const compatibilityHelpers = ['wine', 'crossover', 'whisky', 'gptk'] as const
-
 const isCompatibilityHelper = (
   helper: HelperId
 ): helper is CompatibilityBackend =>
-  compatibilityHelpers.includes(helper as CompatibilityBackend)
+  COMPATIBILITY_BACKENDS.includes(helper as CompatibilityBackend)
 
 const emptyState = (): FormState => ({
   title: '',
