@@ -71,8 +71,55 @@ const getBottleEnvironment = (
 }
 
 const splitLaunchArgs = (launchArgs?: string): string[] => {
-  const trimmedArgs = launchArgs?.trim()
-  return trimmedArgs ? trimmedArgs.split(/\s+/) : []
+  const args: string[] = []
+  let current = ''
+  let quote: '"' | "'" | null = null
+  let escaping = false
+
+  for (const char of launchArgs ?? '') {
+    if (escaping) {
+      current += char
+      escaping = false
+      continue
+    }
+
+    if (char === '\\') {
+      escaping = true
+      continue
+    }
+
+    if (quote) {
+      if (char === quote) {
+        quote = null
+      } else {
+        current += char
+      }
+      continue
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char
+      continue
+    }
+
+    if (/\s/.test(char)) {
+      if (current) {
+        args.push(current)
+        current = ''
+      }
+      continue
+    }
+
+    current += char
+  }
+
+  if (escaping) {
+    current += '\\'
+  }
+  if (current) {
+    args.push(current)
+  }
+  return args
 }
 
 export const getLauncherPreview = (game: GameEntry): LauncherPreview => {

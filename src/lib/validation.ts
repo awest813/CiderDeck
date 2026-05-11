@@ -83,11 +83,13 @@ export const validateCompatibilityProfile = (
     (profile.backend === 'wine' || profile.backend === 'whisky') &&
     !profile.wineExecutablePath
   ) {
-    const binaryLabel =
+    const wineExecutableDescription =
       profile.backend === 'wine'
         ? DEFAULT_WINE_PROGRAM
         : `Whisky bundled wine64 (${DEFAULT_WHISKY_WINE_PATH})`
-    issues.push(info(`No Wine executable path set — using ${binaryLabel}.`))
+    issues.push(
+      info(`No Wine executable path set — using ${wineExecutableDescription}.`)
+    )
   }
   return finalize(issues)
 }
