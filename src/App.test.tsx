@@ -8,7 +8,7 @@ describe('App', () => {
   it('renders main window layout', () => {
     render(<App />)
     expect(
-      screen.getByRole('heading', { name: /ciderdeck/i, level: 2 })
+      screen.getByRole('heading', { name: 'Profiles', level: 2 })
     ).toBeInTheDocument()
   })
 

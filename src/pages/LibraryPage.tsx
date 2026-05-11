@@ -5,16 +5,19 @@ import { Sidebar, type SidebarPage } from '@/components/Sidebar'
 import { loadProfiles } from '@/lib/profile-storage'
 import { ProfilesPage } from '@/pages/ProfilesPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import type { CiderDeckProfile } from '@/types/Profile'
 
 export function LibraryPage() {
   const [activePage, setActivePage] = useState<SidebarPage>('profiles')
-  const [profileCount] = useState(() => loadProfiles().length)
+  const [profiles, setProfiles] = useState<CiderDeckProfile[]>(() =>
+    loadProfiles()
+  )
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <Sidebar
         activePage={activePage}
-        profileCount={profileCount}
+        profileCount={profiles.length}
         onPageChange={setActivePage}
       />
 
@@ -23,7 +26,7 @@ export function LibraryPage() {
           <SettingsPage />
         </main>
       ) : (
-        <ProfilesPage />
+        <ProfilesPage profiles={profiles} onProfilesChange={setProfiles} />
       )}
     </div>
   )

@@ -8,9 +8,9 @@ import { ProfileLibrary } from '@/components/ProfileLibrary'
 import { ProfileLogViewer } from '@/components/ProfileLogViewer'
 import { ValidationPanel } from '@/components/ValidationPanel'
 import { CATEGORIES } from '@/lib/helper-catalog'
+import { cn } from '@/lib/utils'
 import {
   deleteProfile,
-  loadProfiles,
   saveProfiles,
   upsertProfile,
 } from '@/lib/profile-storage'
@@ -19,10 +19,15 @@ import type { CiderDeckProfile, ProfileLogEntry } from '@/types/Profile'
 
 const SESSION_LOG_LIMIT = 30
 
-export function ProfilesPage() {
-  const [profiles, setProfiles] = useState<CiderDeckProfile[]>(() =>
-    loadProfiles()
-  )
+interface ProfilesPageProps {
+  profiles: CiderDeckProfile[]
+  onProfilesChange: (profiles: CiderDeckProfile[]) => void
+}
+
+export function ProfilesPage({
+  profiles,
+  onProfilesChange,
+}: ProfilesPageProps) {
   const [selectedProfileId, setSelectedProfileId] = useState<string>()
   const [logsByProfile, setLogsByProfile] = useState<
     Record<string, ProfileLogEntry[]>
@@ -49,19 +54,18 @@ export function ProfilesPage() {
     }
   }, [selectedProfileId])
 
-  const persist = (next: CiderDeckProfile[]) => {
-    saveProfiles(next)
-    return next
-  }
-
   const handleSave = (profile: CiderDeckProfile) => {
-    setProfiles(current => persist(upsertProfile(current, profile)))
+    const next = upsertProfile(profiles, profile)
+    saveProfiles(next)
+    onProfilesChange(next)
     setSelectedProfileId(profile.id)
     setShowWizard(false)
   }
 
   const handleDelete = (profileId: string) => {
-    setProfiles(current => persist(deleteProfile(current, profileId)))
+    const next = deleteProfile(profiles, profileId)
+    saveProfiles(next)
+    onProfilesChange(next)
     if (selectedProfileId === profileId) setSelectedProfileId(undefined)
     setLogsByProfile(current => {
       const { [profileId]: _removed, ...rest } = current
@@ -91,14 +95,10 @@ export function ProfilesPage() {
       <section className="min-w-0 overflow-auto pr-1">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-              Helper Profiles
-            </p>
-            <h2 className="mt-2 text-4xl font-bold">CiderDeck</h2>
-            <p className="mt-2 max-w-2xl text-muted-foreground">
-              A workbench for compatibility layers, source ports, emulators,
-              open engines, and recompilation projects. Bring your own legally
-              obtained game data.
+            <h2 className="text-3xl font-bold">Profiles</h2>
+            <p className="mt-1 text-muted-foreground">
+              Manage and launch your helpers, source ports, emulators, and
+              recompilation projects.
             </p>
           </div>
           <Button
@@ -114,7 +114,13 @@ export function ProfilesPage() {
 
         <div className="mb-6 grid grid-cols-3 gap-3 lg:grid-cols-6">
           {profilesByCategory.map(({ category, count }) => (
-            <div key={category.id} className="rounded-lg border bg-card p-3">
+            <div
+              key={category.id}
+              className={cn(
+                'rounded-lg border bg-card p-3 transition-opacity',
+                count === 0 && 'opacity-40'
+              )}
+            >
               <p className="text-sm font-semibold">{category.label}</p>
               <p className="mt-1 text-xs text-muted-foreground">{count}</p>
             </div>
