@@ -1,3 +1,5 @@
+import { isTauri } from '@tauri-apps/api/core'
+import { commands } from '@/lib/tauri-bindings'
 import { createId } from '@/lib/storage'
 import type {
   CompatibilityBackend,
@@ -58,20 +60,86 @@ const getEnvironment = (environmentVariables?: Record<string, string>) => {
   )
 }
 
+const getBottleEnvironment = (
+  backend: CompatibilityBackend,
+  bottlePath?: string
+): Record<string, string> => {
+  if ((backend === 'wine' || backend === 'whisky') && bottlePath) {
+    return { WINEPREFIX: bottlePath }
+  }
+  return {}
+}
+
+const splitLaunchArgs = (launchArgs?: string): string[] => {
+  const args: string[] = []
+  let current = ''
+  let quote: '"' | "'" | null = null
+  let escaping = false
+
+  for (const char of launchArgs ?? '') {
+    if (escaping) {
+      current += char
+      escaping = false
+      continue
+    }
+
+    if (char === '\\') {
+      escaping = true
+      continue
+    }
+
+    if (quote) {
+      if (char === quote) {
+        quote = null
+      } else {
+        current += char
+      }
+      continue
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char
+      continue
+    }
+
+    if (/\s/.test(char)) {
+      if (current) {
+        args.push(current)
+        current = ''
+      }
+      continue
+    }
+
+    current += char
+  }
+
+  if (escaping) {
+    current += '\\'
+  }
+  if (current) {
+    args.push(current)
+  }
+  return args
+}
+
 export const getLauncherPreview = (game: GameEntry): LauncherPreview => {
   const backend = backendDetails[game.backend]
   const args = [...backend.baseArgs]
 
-  if (game.bottlePath) {
+  if (game.bottlePath && game.backend !== 'wine' && game.backend !== 'whisky') {
     args.push('--bottle', game.bottlePath)
   }
 
   args.push(game.executablePath)
+  args.push(...splitLaunchArgs(game.launchArgs))
 
   return {
     program: backend.program,
     args,
-    environment: getEnvironment(game.environmentVariables),
+    environment: {
+      ...getBottleEnvironment(game.backend, game.bottlePath),
+      ...getEnvironment(game.environmentVariables),
+    },
     launchArgs: game.launchArgs || undefined,
   }
 }
@@ -81,7 +149,41 @@ export const getLauncherCommand = (game: GameEntry) =>
 
 export const launchGame = async (game: GameEntry): Promise<LaunchLog> => {
   const command = getLauncherCommand(game)
+  const preview = getLauncherPreview(game)
   const backend = backendDetails[game.backend]
+
+  if (isTauri()) {
+    const result = await commands.launchProfileExecutable(
+      preview.program,
+      preview.args,
+      preview.environment,
+      null
+    )
+
+    if (result.status === 'ok') {
+      return {
+        id: createId(),
+        gameId: game.id,
+        createdAt: new Date().toISOString(),
+        backend: game.backend,
+        command,
+        stdout: result.data.stdout,
+        stderr: result.data.stderr,
+        exitCode: result.data.exit_code,
+      }
+    }
+
+    return {
+      id: createId(),
+      gameId: game.id,
+      createdAt: new Date().toISOString(),
+      backend: game.backend,
+      command,
+      stdout: '',
+      stderr: `Launch failed: ${result.error}`,
+      exitCode: null,
+    }
+  }
 
   return {
     id: createId(),
@@ -92,9 +194,9 @@ export const launchGame = async (game: GameEntry): Promise<LaunchLog> => {
     stdout: [
       `Preparing ${game.title} with ${backend.label}.`,
       `Launch preview: ${command}`,
-      'Starter build: launch execution is simulated until native Tauri launcher commands are wired.',
+      'Preview mode: no native process was spawned.',
     ].join('\n'),
-    stderr:
-      'No process was spawned. Use structured Rust process arguments before executing user-provided paths.',
+    stderr: '',
+    exitCode: null,
   }
 }

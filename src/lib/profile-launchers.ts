@@ -17,6 +17,10 @@ import type {
   QuakeProfile,
 } from '@/types/Profile'
 
+export const DEFAULT_WINE_PROGRAM = 'wine'
+export const DEFAULT_WHISKY_WINE_PATH =
+  '/Applications/Whisky.app/Contents/MacOS/wine64'
+
 const cleanArgs = (parts: (string | undefined | null | false)[]): string[] =>
   parts.filter(
     (part): part is string => typeof part === 'string' && part.length > 0
@@ -51,7 +55,7 @@ export function buildCompatibilityLaunchRequest(
 
   switch (profile.backend) {
     case 'wine':
-      program = 'wine'
+      program = profile.wineExecutablePath || DEFAULT_WINE_PROGRAM
       if (profile.bottlePath) {
         env.WINEPREFIX = profile.bottlePath
       }
@@ -66,7 +70,7 @@ export function buildCompatibilityLaunchRequest(
       args.push('--', profile.executablePath)
       break
     case 'whisky':
-      program = 'wine'
+      program = profile.wineExecutablePath || DEFAULT_WHISKY_WINE_PATH
       if (profile.bottlePath) {
         env.WINEPREFIX = profile.bottlePath
       }

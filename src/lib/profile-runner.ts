@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { invoke, isTauri } from '@tauri-apps/api/core'
+import { isTauri } from '@tauri-apps/api/core'
+import { commands } from '@/lib/tauri-bindings'
 import { createId } from '@/lib/storage'
 import { buildLaunchRequest, LaunchRequestError } from '@/lib/profile-launchers'
 import type {
@@ -8,12 +9,6 @@ import type {
   LaunchRequest,
   ProfileLogEntry,
 } from '@/types/Profile'
-
-interface ProcessOutcome {
-  stdout: string
-  stderr: string
-  exit_code: number | null
-}
 
 const formatCommand = (request: LaunchRequest): string => {
   const env = request.envVars
@@ -38,7 +33,7 @@ const buildLogEntry = (
   command,
   stdout: outcome.stdout,
   stderr: outcome.stderr,
-  exitCode: outcome.exit_code ?? undefined,
+  exitCode: outcome.exit_code,
 })
 
 /**
@@ -82,12 +77,16 @@ export const launchProfile = async (
   }
 
   try {
-    const outcome = await invoke<ProcessOutcome>('launch_profile_executable', {
-      executablePath: request.executablePath,
-      args: request.args,
-      envVars: request.envVars ?? null,
-      workingDir: request.workingDir ?? null,
-    })
+    const result = await commands.launchProfileExecutable(
+      request.executablePath,
+      request.args,
+      request.envVars ?? null,
+      request.workingDir ?? null
+    )
+    if (result.status === 'error') {
+      throw result.error
+    }
+    const outcome = result.data
     const entry = buildLogEntry(profile, command, outcome)
     await persistLogEntry(profile.id, entry)
     return entry
@@ -106,7 +105,7 @@ const persistLogEntry = async (
 ): Promise<void> => {
   if (!isTauri()) return
   try {
-    await invoke('save_log', { profileId, entry })
+    await commands.saveLog(profileId, entry)
   } catch {
     // Persisting logs is best-effort. Swallow so launch UI still updates.
   }
@@ -117,7 +116,8 @@ export const fetchPersistedLogs = async (
 ): Promise<ProfileLogEntry[]> => {
   if (!isTauri()) return []
   try {
-    return await invoke<ProfileLogEntry[]>('read_logs', { profileId })
+    const result = await commands.readLogs(profileId)
+    return result.status === 'ok' ? result.data : []
   } catch {
     return []
   }

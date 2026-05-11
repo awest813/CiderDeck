@@ -16,6 +16,10 @@ import type {
   OpenXcomProfile,
   QuakeProfile,
 } from '@/types/Profile'
+import {
+  DEFAULT_WHISKY_WINE_PATH,
+  DEFAULT_WINE_PROGRAM,
+} from '@/lib/profile-launchers'
 import type { ValidationIssue, ValidationResult } from '@/types/Validation'
 
 const error = (message: string): ValidationIssue => ({
@@ -70,7 +74,21 @@ export const validateCompatibilityProfile = (
   ) {
     const backendLabel = profile.backend === 'wine' ? 'Wine' : 'Whisky'
     issues.push(
-      warning(`No ${backendLabel} prefix specified — default prefix will be used.`)
+      warning(
+        `No ${backendLabel} prefix specified — default prefix will be used.`
+      )
+    )
+  }
+  if (
+    (profile.backend === 'wine' || profile.backend === 'whisky') &&
+    !profile.wineExecutablePath
+  ) {
+    const wineExecutableDescription =
+      profile.backend === 'wine'
+        ? DEFAULT_WINE_PROGRAM
+        : `Whisky bundled wine64 (${DEFAULT_WHISKY_WINE_PATH})`
+    issues.push(
+      info(`No Wine executable path set — using ${wineExecutableDescription}.`)
     )
   }
   return finalize(issues)
