@@ -1,7 +1,11 @@
 import { createId } from '@/lib/storage'
-import type { CompatibilityBackend, GameEntry, LaunchLog } from '@/types/GameEntry'
+import type {
+  CompatibilityBackend,
+  GameEntry,
+  LaunchLog,
+} from '@/types/GameEntry'
 
-type BackendDetails = {
+interface BackendDetails {
   label: string
   description: string
   executable: string

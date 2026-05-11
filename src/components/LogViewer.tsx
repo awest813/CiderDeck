@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { backendDetails } from '@/lib/launchers'
 import type { GameEntry } from '@/types/GameEntry'
 
-type LogViewerProps = {
+interface LogViewerProps {
   game?: GameEntry
 }
 
@@ -25,7 +25,10 @@ export function LogViewer({ game }: LogViewerProps) {
         ) : (
           <div className="space-y-4 overflow-auto pr-1">
             {game.logs.map(log => (
-              <article key={log.id} className="rounded-lg border bg-muted/30 p-3">
+              <article
+                key={log.id}
+                className="rounded-lg border bg-muted/30 p-3"
+              >
                 <div className="mb-2 flex items-center justify-between gap-3 text-sm">
                   <span className="font-medium">
                     {backendDetails[log.backend].label}

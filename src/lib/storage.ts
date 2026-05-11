@@ -61,7 +61,9 @@ export const saveGames = (games: GameEntry[]) => {
 }
 
 export const upsertGame = (games: GameEntry[], game: GameEntry) => {
-  const existingIndex = games.findIndex(existingGame => existingGame.id === game.id)
+  const existingIndex = games.findIndex(
+    existingGame => existingGame.id === game.id
+  )
   if (existingIndex === -1) {
     return [game, ...games]
   }

@@ -1,7 +1,7 @@
 import { GameCard } from '@/components/GameCard'
 import type { GameEntry } from '@/types/GameEntry'
 
-type GameLibraryProps = {
+interface GameLibraryProps {
   games: GameEntry[]
   selectedGameId?: string
   onDelete: (gameId: string) => void

@@ -1,8 +1,13 @@
 export type CompatibilityBackend = 'wine' | 'crossover' | 'whisky' | 'gptk'
 
-export type GameStatus = 'untested' | 'perfect' | 'playable' | 'boots' | 'broken'
+export type GameStatus =
+  | 'untested'
+  | 'perfect'
+  | 'playable'
+  | 'boots'
+  | 'broken'
 
-export type LaunchLog = {
+export interface LaunchLog {
   id: string
   gameId: string
   createdAt: string
@@ -13,7 +18,7 @@ export type LaunchLog = {
   exitCode?: number
 }
 
-export type GameEntry = {
+export interface GameEntry {
   id: string
   title: string
   executablePath: string

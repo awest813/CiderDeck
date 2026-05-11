@@ -42,7 +42,9 @@ export function LibraryPage() {
 
   const handleLaunchGame = async (game: GameEntry) => {
     const log = await launchGame(game)
-    setGames(currentGames => persistGames(appendGameLog(currentGames, game.id, log)))
+    setGames(currentGames =>
+      persistGames(appendGameLog(currentGames, game.id, log))
+    )
     setSelectedGameId(game.id)
   }
 

@@ -23,7 +23,7 @@ const statusOptions: GameStatus[] = [
   'broken',
 ]
 
-type GameFormState = {
+interface GameFormState {
   title: string
   executablePath: string
   backend: CompatibilityBackend
@@ -34,7 +34,7 @@ type GameFormState = {
   notes: string
 }
 
-type GameFormProps = {
+interface GameFormProps {
   game?: GameEntry
   onSave: (game: GameEntry) => void
 }
@@ -109,7 +109,9 @@ export function GameForm({ game, onSave }: GameFormProps) {
       status: formState.status,
       bottlePath: formState.bottlePath.trim() || undefined,
       launchArgs: formState.launchArgs.trim() || undefined,
-      environmentVariables: parseEnvironmentText(formState.environmentVariables),
+      environmentVariables: parseEnvironmentText(
+        formState.environmentVariables
+      ),
       notes: formState.notes.trim() || undefined,
       logs: game?.logs ?? [],
       createdAt: game?.createdAt ?? now,

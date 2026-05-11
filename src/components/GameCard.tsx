@@ -4,7 +4,7 @@ import { backendDetails } from '@/lib/launchers'
 import { cn } from '@/lib/utils'
 import type { GameEntry } from '@/types/GameEntry'
 
-type GameCardProps = {
+interface GameCardProps {
   game: GameEntry
   selected: boolean
   onDelete: (gameId: string) => void
@@ -43,7 +43,9 @@ export function GameCard({
       <CardContent className="space-y-3 px-4 text-sm">
         <div>
           <p className="font-medium">{backendDetails[game.backend].label}</p>
-          <p className="truncate text-muted-foreground">{game.executablePath}</p>
+          <p className="truncate text-muted-foreground">
+            {game.executablePath}
+          </p>
         </div>
         {game.notes ? (
           <p className="line-clamp-2 text-muted-foreground">{game.notes}</p>

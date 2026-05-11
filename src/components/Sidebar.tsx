@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 type SidebarPage = 'library' | 'settings'
 
-type SidebarProps = {
+interface SidebarProps {
   activePage: SidebarPage
   gameCount: number
   onPageChange: (page: SidebarPage) => void
