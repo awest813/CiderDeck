@@ -14,6 +14,7 @@ import {
   stringifyEnv,
 } from '@/components/profile-forms/shared'
 import { helperLabel } from '@/lib/helper-catalog'
+import { COMPATIBILITY_BACKENDS } from '@/types/Profile'
 import type {
   AlephOneProfile,
   CiderDeckProfile,
@@ -129,6 +130,11 @@ interface FormState {
   envVars: string
 }
 
+const isCompatibilityHelper = (
+  helper: HelperId
+): helper is CompatibilityBackend =>
+  COMPATIBILITY_BACKENDS.some(backend => backend === helper)
+
 const emptyState = (): FormState => ({
   title: '',
   status: 'unconfigured',
@@ -197,6 +203,14 @@ const emptyState = (): FormState => ({
   launchArgs: '',
   envVars: '',
 })
+
+const stateFromHelper = (helper: HelperId): FormState => {
+  const base = emptyState()
+  if (isCompatibilityHelper(helper)) {
+    base.backend = helper
+  }
+  return base
+}
 
 const stateFromProfile = (profile: CiderDeckProfile): FormState => {
   const base = emptyState()
@@ -640,7 +654,7 @@ export function ProfileForm({
   submitLabel,
 }: ProfileFormProps) {
   const [state, setState] = useState<FormState>(() =>
-    initial ? stateFromProfile(initial) : emptyState()
+    initial ? stateFromProfile(initial) : stateFromHelper(helper)
   )
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>

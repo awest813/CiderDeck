@@ -58,7 +58,14 @@ export interface BaseProfile {
   updatedAt: string
 }
 
-export type CompatibilityBackend = 'wine' | 'crossover' | 'whisky' | 'gptk'
+export const COMPATIBILITY_BACKENDS = [
+  'wine',
+  'crossover',
+  'whisky',
+  'gptk',
+] as const
+
+export type CompatibilityBackend = (typeof COMPATIBILITY_BACKENDS)[number]
 
 export interface CompatibilityProfile extends BaseProfile {
   category: 'compatibility-layer'
