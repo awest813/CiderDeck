@@ -64,9 +64,14 @@ export const validateCompatibilityProfile = (
       )
     )
   }
-  if (profile.backend === 'wine' && !profile.bottlePath) {
+  if (
+    (profile.backend === 'wine' || profile.backend === 'whisky') &&
+    !profile.bottlePath
+  ) {
     issues.push(
-      warning('No Wine prefix specified — default WINEPREFIX will be used.')
+      warning(
+        'No Wine/Whisky prefix specified — default WINEPREFIX will be used.'
+      )
     )
   }
   return finalize(issues)
