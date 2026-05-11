@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState, type FormEvent } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 import { newProfileTimestamps } from '@/lib/profile-storage'
 import {
   joinArgs,
@@ -404,25 +408,21 @@ const Field = ({
   </label>
 )
 
-const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-  <input
-    {...props}
-    className={`w-full rounded-md border bg-background px-3 py-2 ${props.className ?? ''}`}
-  />
-)
-
-const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-  <textarea
-    {...props}
-    className={`min-h-20 w-full rounded-md border bg-background px-3 py-2 ${props.className ?? ''}`}
-  />
-)
-
 const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
-  <select
-    {...props}
-    className={`w-full rounded-md border bg-background px-3 py-2 capitalize ${props.className ?? ''}`}
-  />
+  <div className="relative w-full">
+    <select
+      {...props}
+      className={cn(
+        'border-input dark:bg-input/30 h-9 w-full appearance-none rounded-md border bg-transparent px-3 py-2 pr-9 text-sm shadow-xs transition-[color,box-shadow] outline-none',
+        'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+        props.className
+      )}
+    />
+    <ChevronDown
+      className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 opacity-50"
+      aria-hidden="true"
+    />
+  </div>
 )
 
 const buildProfile = (
