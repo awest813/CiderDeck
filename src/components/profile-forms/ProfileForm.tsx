@@ -133,7 +133,7 @@ interface FormState {
 const isCompatibilityHelper = (
   helper: HelperId
 ): helper is CompatibilityBackend =>
-  COMPATIBILITY_BACKENDS.includes(helper as CompatibilityBackend)
+  COMPATIBILITY_BACKENDS.some(backend => backend === helper)
 
 const emptyState = (): FormState => ({
   title: '',
