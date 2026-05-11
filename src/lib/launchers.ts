@@ -70,13 +70,10 @@ const getBottleEnvironment = (
   return {}
 }
 
-const splitLaunchArgs = (launchArgs?: string): string[] =>
-  launchArgs
-    ? launchArgs
-        .split(/\s+/)
-        .map(arg => arg.trim())
-        .filter(arg => arg.length > 0)
-    : []
+const splitLaunchArgs = (launchArgs?: string): string[] => {
+  const trimmedArgs = launchArgs?.trim()
+  return trimmedArgs ? trimmedArgs.split(/\s+/) : []
+}
 
 export const getLauncherPreview = (game: GameEntry): LauncherPreview => {
   const backend = backendDetails[game.backend]
@@ -150,7 +147,7 @@ export const launchGame = async (game: GameEntry): Promise<LaunchLog> => {
     stdout: [
       `Preparing ${game.title} with ${backend.label}.`,
       `Launch preview: ${command}`,
-      'Browser preview mode: no native process was spawned.',
+      'Preview mode: no native process was spawned.',
     ].join('\n'),
     stderr: '',
     exitCode: null,

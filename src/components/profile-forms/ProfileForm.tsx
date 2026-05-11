@@ -699,7 +699,7 @@ export function ProfileForm({
               />
             </Field>
             {(state.backend === 'wine' || state.backend === 'whisky') && (
-              <Field label="Wine executable path (optional custom binary location)">
+              <Field label="Wine executable path (optional)">
                 <Input
                   value={state.wineExecutablePath}
                   onChange={e => update('wineExecutablePath', e.target.value)}
