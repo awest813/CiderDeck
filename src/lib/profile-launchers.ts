@@ -11,6 +11,7 @@ import type {
   LaunchRequest,
   N64RecompProfile,
   OpenDiabloProfile,
+  OpenMWProfile,
   OpenRCT2Profile,
   OpenXcomProfile,
   QuakeProfile,
@@ -211,6 +212,32 @@ export function buildOpenRCT2LaunchRequest(
   }
 }
 
+export function buildOpenMWLaunchRequest(
+  profile: OpenMWProfile
+): LaunchRequest {
+  if (!profile.enginePath) {
+    throw new LaunchRequestError('OpenMW executable path is required.')
+  }
+
+  const args: string[] = []
+  if (profile.configPath) args.push('--config', profile.configPath)
+  if (profile.gameDataPath) args.push('--data', profile.gameDataPath)
+  if (profile.userDataPath) args.push('--user-data', profile.userDataPath)
+  if (profile.resourcesPath) args.push('--resources', profile.resourcesPath)
+  if (profile.loadSavegamePath) {
+    args.push('--load-savegame', profile.loadSavegamePath)
+  }
+  if (profile.fullscreen === false) {
+    args.push('--fullscreen=false')
+  }
+  if (profile.launchArgs) args.push(...profile.launchArgs)
+
+  return {
+    executablePath: profile.enginePath,
+    args,
+  }
+}
+
 export function buildOpenXcomLaunchRequest(
   profile: OpenXcomProfile
 ): LaunchRequest {
@@ -359,6 +386,8 @@ export function buildLaunchRequest(profile: CiderDeckProfile): LaunchRequest {
       return buildAlephOneLaunchRequest(profile as AlephOneProfile)
     case 'openrct2':
       return buildOpenRCT2LaunchRequest(profile as OpenRCT2Profile)
+    case 'openmw':
+      return buildOpenMWLaunchRequest(profile as OpenMWProfile)
     case 'openxcom':
       return buildOpenXcomLaunchRequest(profile as OpenXcomProfile)
     case 'openciv':

@@ -201,6 +201,22 @@ export interface OpenRCT2Profile extends BaseProfile {
   launchArgs?: string[]
 }
 
+export interface OpenMWProfile extends BaseProfile {
+  category: 'source-port'
+  helper: 'openmw'
+  enginePath?: string
+  gameDataPath?: string
+  configPath?: string
+  userDataPath?: string
+  savePath?: string
+  resourcesPath?: string
+  loadSavegamePath?: string
+  fullscreen?: boolean
+  width?: number
+  height?: number
+  launchArgs?: string[]
+}
+
 export type XcomGame =
   | 'ufo-defense'
   | 'enemy-unknown'
@@ -321,6 +337,7 @@ export type CiderDeckProfile =
   | OpenDiabloProfile
   | AlephOneProfile
   | OpenRCT2Profile
+  | OpenMWProfile
   | OpenXcomProfile
   | CivProfile
   | EmulatorProfile

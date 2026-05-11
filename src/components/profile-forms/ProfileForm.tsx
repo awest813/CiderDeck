@@ -36,6 +36,7 @@ import type {
   N64RecompProfile,
   N64RecompRenderer,
   OpenDiabloProfile,
+  OpenMWProfile,
   OpenRCT2Profile,
   OpenXcomProfile,
   ProfileStatus,
@@ -93,6 +94,8 @@ interface FormState {
   openRCT2Path: string
   savesPath: string
   scenariosPath: string
+  resourcesPath: string
+  loadSavegamePath: string
   enginePath: string
   alephOnePath: string
   gemRBPath: string
@@ -162,6 +165,8 @@ const emptyState = (): FormState => ({
   openRCT2Path: '',
   savesPath: '',
   scenariosPath: '',
+  resourcesPath: '',
+  loadSavegamePath: '',
   enginePath: '',
   alephOnePath: '',
   gemRBPath: '',
@@ -288,6 +293,21 @@ const stateFromProfile = (profile: CiderDeckProfile): FormState => {
       base.gameDataPath = p.gameDataPath ?? ''
       base.savesPath = p.savesPath ?? ''
       base.scenariosPath = p.scenariosPath ?? ''
+      base.launchArgs = joinArgs(p.launchArgs)
+      break
+    }
+    case 'openmw': {
+      const p = profile as OpenMWProfile
+      base.enginePath = p.enginePath ?? ''
+      base.gameDataPath = p.gameDataPath ?? ''
+      base.configPath = p.configPath ?? ''
+      base.userDataPath = p.userDataPath ?? ''
+      base.savePath = p.savePath ?? ''
+      base.resourcesPath = p.resourcesPath ?? ''
+      base.loadSavegamePath = p.loadSavegamePath ?? ''
+      base.fullscreen = p.fullscreen ?? true
+      base.width = p.width ? String(p.width) : ''
+      base.height = p.height ? String(p.height) : ''
       base.launchArgs = joinArgs(p.launchArgs)
       break
     }
@@ -520,6 +540,23 @@ const buildProfile = (
         scenariosPath: state.scenariosPath.trim() || undefined,
         ...launchArgsField,
       } as OpenRCT2Profile
+    case 'openmw':
+      return {
+        ...baseFields,
+        category: 'source-port',
+        helper: 'openmw',
+        enginePath: state.enginePath.trim() || undefined,
+        gameDataPath: state.gameDataPath.trim() || undefined,
+        configPath: state.configPath.trim() || undefined,
+        userDataPath: state.userDataPath.trim() || undefined,
+        savePath: state.savePath.trim() || undefined,
+        resourcesPath: state.resourcesPath.trim() || undefined,
+        loadSavegamePath: state.loadSavegamePath.trim() || undefined,
+        fullscreen: state.fullscreen,
+        width: widthValue,
+        height: heightValue,
+        ...launchArgsField,
+      } as OpenMWProfile
     case 'openxcom':
       return {
         ...baseFields,
@@ -966,6 +1003,47 @@ export function ProfileForm({
               <Input
                 value={state.scenariosPath}
                 onChange={e => update('scenariosPath', e.target.value)}
+              />
+            </Field>
+          </>
+        )
+      case 'openmw':
+        return (
+          <>
+            <Field label="OpenMW executable path">
+              <Input
+                value={state.enginePath}
+                onChange={e => update('enginePath', e.target.value)}
+              />
+            </Field>
+            <Field label="Morrowind Data Files folder">
+              <Input
+                value={state.gameDataPath}
+                onChange={e => update('gameDataPath', e.target.value)}
+              />
+            </Field>
+            <Field label="openmw.cfg path">
+              <Input
+                value={state.configPath}
+                onChange={e => update('configPath', e.target.value)}
+              />
+            </Field>
+            <Field label="User data path (saves, mods)">
+              <Input
+                value={state.userDataPath}
+                onChange={e => update('userDataPath', e.target.value)}
+              />
+            </Field>
+            <Field label="Resources path">
+              <Input
+                value={state.resourcesPath}
+                onChange={e => update('resourcesPath', e.target.value)}
+              />
+            </Field>
+            <Field label="Load savegame at startup (optional)">
+              <Input
+                value={state.loadSavegamePath}
+                onChange={e => update('loadSavegamePath', e.target.value)}
               />
             </Field>
           </>

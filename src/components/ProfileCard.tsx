@@ -35,6 +35,8 @@ const summaryFor = (profile: CiderDeckProfile): string => {
       return profile.scenarioPath ?? 'No Marathon scenario set'
     case 'openrct2':
       return profile.gameDataPath ?? 'No RCT2 data set'
+    case 'openmw':
+      return profile.gameDataPath ?? 'No Morrowind Data Files set'
     case 'openxcom':
       return profile.gameDataPath ?? 'No X-COM data set'
     case 'openciv':

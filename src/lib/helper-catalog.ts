@@ -105,6 +105,12 @@ export const HELPERS: HelperDescriptor[] = [
     blurb: 'Marathon, Marathon 2, Marathon Infinity, third-party scenarios.',
   },
   {
+    id: 'openmw',
+    label: 'OpenMW (Morrowind)',
+    category: 'source-port',
+    blurb: 'Open-source TES III: Morrowind engine reimplementation.',
+  },
+  {
     id: 'openrct2',
     label: 'OpenRCT2',
     category: 'source-port',

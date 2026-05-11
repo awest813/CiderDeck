@@ -11,6 +11,7 @@ import type {
   GemRBProfile,
   N64RecompProfile,
   OpenDiabloProfile,
+  OpenMWProfile,
   OpenRCT2Profile,
   OpenXcomProfile,
   QuakeProfile,
@@ -197,6 +198,27 @@ export const validateOpenRCT2Profile = (
   return finalize(issues)
 }
 
+export const validateOpenMWProfile = (
+  profile: OpenMWProfile
+): ValidationResult => {
+  const issues: ValidationIssue[] = []
+  const enginePath = requirePath(profile.enginePath, 'OpenMW executable path')
+  if (enginePath) issues.push(enginePath)
+  const dataPath = requirePath(
+    profile.gameDataPath,
+    'Morrowind Data Files folder (contains Morrowind.bsa, Morrowind.esm)'
+  )
+  if (dataPath) issues.push(dataPath)
+  if (!profile.configPath) {
+    issues.push(
+      warning(
+        'No openmw.cfg specified — OpenMW will use its default config location.'
+      )
+    )
+  }
+  return finalize(issues)
+}
+
 export const validateOpenXcomProfile = (
   profile: OpenXcomProfile
 ): ValidationResult => {
@@ -314,6 +336,8 @@ export const validateProfile = (
       return validateAlephOneProfile(profile as AlephOneProfile)
     case 'openrct2':
       return validateOpenRCT2Profile(profile as OpenRCT2Profile)
+    case 'openmw':
+      return validateOpenMWProfile(profile as OpenMWProfile)
     case 'openxcom':
       return validateOpenXcomProfile(profile as OpenXcomProfile)
     case 'openciv':
