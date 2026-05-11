@@ -1,76 +1,120 @@
 # CiderDeck Roadmap
 
-CiderDeck is GPL-3.0-or-later. Each milestone aims to ship a small,
-working slice rather than a complete vision.
+CiderDeck is GPL-3.0-or-later and macOS-first.
+Each milestone ships a small, usable slice toward one clear outcome:
+an open-source compatibility manager for Windows games on macOS.
 
-## v0.1 — Base Library + Launcher (current)
+## Product Goal
 
-- Local **profile** storage for compatibility layers, source ports,
-  emulators, recompilation projects, and custom helpers
-- Three-step **Add Profile wizard** (category → helper → form)
-- Helper-aware **ProfileForm** (compat / Doom / Quake / GemRB /
-  OpenDiablo / Aleph One / OpenRCT2 / OpenXcom / Freeciv / Emulator /
-  N64Recomp)
-- **LaunchRequest** builders (`buildLaunchRequest` and per-helper variants)
-- Structured Tauri Rust commands:
-  - `launch_profile_executable`
-  - `run_build_step`
-  - `save_log`
-  - `read_logs`
-- Per-profile **log persistence** (JSON in app-data dir, capped at 200
-  entries)
-- Per-profile **validation panel** (errors, warnings, info)
-- Placeholder **AI Troubleshoot** button (no API wired)
-- The legacy single-purpose Wine/CrossOver/Whisky/GPTK Game Library page
-  is preserved as a second sidebar tab
+Make CiderDeck the open-source, macOS-first game compatibility manager:
+a "macOS Lutris" with Proton-style convenience while respecting
+CrossOver intellectual property and avoiding proprietary feature cloning.
 
-## v0.2 — Source Port Helpers
+## Product Boundaries
 
-- Doom — IWAD discovery hints, mod ordering helper
-- Quake / Quake II / Quake III — better mission-pack handling, Steam/GOG
-  prefix discovery
-- OpenDiablo / DevilutionX — guided MPQ checking, Hellfire toggle
-- GemRB — preset templates per Infinity Engine title
-- Aleph One — scenario auto-detect, Marathon trilogy bundling
+- CiderDeck is a compatibility manager/orchestrator, not a game
+  reimplementation project
+- No bundled proprietary game data, no anti-cheat workarounds, and no DRM
+  circumvention tooling
+- "macOS Proton-style" means curated runtime + per-game presets and reversible
+  toggles that avoid privileged/system-file changes, not a literal Proton port
+- CrossOver integration is treated as interoperability with existing installs
+  first (launching and using existing bottles); creating or modifying
+  CrossOver-managed bottles is a later milestone decision
 
-## v0.3 — Strategy / Sim Helpers
+## Milestones
 
-- OpenXcom — UFO + TFTD presets, OXCE detection
-- Freeciv / OpenCiv — server vs. client launch flow, ruleset picker
-- OpenRCT2 — RCT2 install detection, scenario library tab
-- OpenRA — mod selection (RA / TD / D2K)
-- OpenTTD, CorsixTH, Julius/Augustus — first-class profile forms
+## v0.1 — Stable Core Launcher (current)
 
-## v0.4 — Emulator Profiles
+- Profile-based launcher with helper-aware forms and validation
+- Structured launch requests and typed Tauri command bridge
+- Per-profile logging, persistence, and troubleshooting foundation
+- Solid baseline for Wine, CrossOver, Whisky, GPTK, and custom helper flows
 
-- DOSBox Staging / DOSBox-X — config templating, mount helper
-- PPSSPP — DLC and save-data path helpers
-- Dolphin — GameCube vs. Wii presets, controller profiles
-- PCSX2 — VU/EE clamping presets, BIOS region picker
-- DuckStation — fastboot toggle, memory-card helpers
-- RetroArch — core picker driven by the libretro core list
-- MAME, ares — system selection helpers
+## v0.2 — Unified Runtime Provider Layer
 
-## v0.5 — Recompilation Workbench
+- Standardize all compatibility helpers behind one runtime abstraction:
+  - Wine
+  - Whisky
+  - Apple Game Porting Toolkit (GPTK)
+  - CrossOver
+  - Custom runtime/provider
+- Ensure all runtime-backed profiles support:
+  - executable path
+  - prefix/bottle/container selection
+  - environment variables
+  - launch arguments
+  - validation and log capture
 
-- N64Recomp / Recomp64 player mode polish (renderer presets, mod loading)
-- Developer mode build pipeline using `run_build_step`
-- Streaming build & runtime logs with severity filtering
-- Per-project asset extraction wizard
-- Custom decomp/recomp project templates
+## v0.3 — Bottle / Prefix Manager
 
-## v0.6 — AI Log Doctor
+- First-class management of Wine prefixes, Whisky bottles, and related
+  container concepts
+- Create, clone, repair, reset, export/import, and delete workflows
+- Track runtime version, architecture, Windows version, installed components,
+  and compatibility notes per bottle
+- Surface bottle health and storage usage for troubleshooting
 
-- Local-first log summarization using a configurable backend
-- Likely-subsystem heuristics ("renderer", "audio", "input", "shaders", …)
-- Suggested fixes with **confidence and risk level**
-- Copy-able shell commands and rollback notes
-- No automatic execution of any suggestion
+## v0.4 — Game-Centric Library Workflows
 
-## Out of scope (long-term)
+- Shift from tool-centric launching to game-centric library management
+- Map each game to one or more runtime profiles/bottles
+- Manual imports from:
+  - app bundles
+  - Steam/GOG/Epic install paths
+  - standalone EXE/MSI workflows
+- Install flows for installer-based and portable games
+- Add per-game artwork, tags, notes, and launch options
 
-- Cloud sync, accounts, leaderboards
-- A community compatibility database (could happen, but only as opt-in)
-- Steam imports, achievement scraping
-- Anti-cheat or DRM workarounds
-- Automatic ROM, BIOS, or game-data downloads of any kind
+## v0.5 — Proton-Style Convenience
+
+- Curated presets for common runtime/game scenarios
+- One-click compatibility toggles and known-good recipes
+- Easy runtime switching ("try with Whisky", "try with GPTK", "try with Wine")
+- Rollback-safe profile/bottle changes for low-risk experimentation
+
+## v0.6 — macOS-Native Compatibility Experience
+
+- Finder-focused UX polish: drag-and-drop, file associations, native paths
+- Better Apple Silicon vs Intel guidance and runtime requirement surfacing
+- Improved handling for app bundles, mounted installers, and macOS storage
+- Stronger macOS-first diagnostics and log workflows
+
+## v0.7 — Community and Ecosystem Integrations
+
+- Import/export shareable profile manifests
+- Optional community-maintained presets/installer definitions
+- Metadata integrations for game details and artwork
+- Compatibility reports and reproducible bug-report exports
+- Keep community features opt-in and separated from core launching
+
+## v1.0 — Production-Ready Compatibility Platform
+
+- Stable plugin/helper interfaces for adding new runtime providers
+- Published runtime/provider API and contribution guidelines
+- Public compatibility matrix and maintenance roadmap
+- Production release workflows for packaging, signing, and updates
+- Complete developer docs for helpers, validators, and installer patterns
+
+## Strategic Decisions to Lock Early
+
+- Primary identity: game launcher, runtime manager, or balanced hybrid
+  (decision criteria: reduced setup friction, reduced support volume,
+  maintenance cost, and support burden;
+  decide by end of v0.2 to inform v0.3 architecture)
+- CrossOver scope: shallow interoperability first vs deeper integration later
+  (decision criteria: legal review, user demand, and long-term maintenance;
+  decide by end of v0.2)
+- Preset distribution model: bundled, curated catalog, or user-installed
+  (decision criteria: moderation burden, GPL compatibility and third-party
+  distribution rights clarity, and UX simplicity;
+  decide by v0.4)
+- Automation boundaries: what is safe and supportable without legal risk
+  (decision criteria: legal constraints, safety, and support overhead;
+  decide by v0.4 before wider preset/community rollout)
+
+## Out of Scope (Long-Term)
+
+- Cloud accounts, social features, or leaderboards
+- Anti-cheat or DRM circumvention tooling
+- Automatic ROM, BIOS, or proprietary game-data downloads
