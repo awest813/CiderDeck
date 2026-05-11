@@ -2,7 +2,7 @@
 
 import { isTauri } from '@tauri-apps/api/core'
 import { commands } from '@/lib/tauri-bindings'
-import { createId } from '@/lib/storage'
+import { createId } from '@/lib/profile-storage'
 import { buildLaunchRequest, LaunchRequestError } from '@/lib/profile-launchers'
 import type {
   CiderDeckProfile,
