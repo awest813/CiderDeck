@@ -87,7 +87,7 @@ proprietary CrossOver features.
 - Compatibility reports and reproducible bug-report exports
 - Keep community features opt-in and separated from core launching
 
-## v1.0 — Open-Source Compatibility Platform
+## v1.0 — Production-Ready Compatibility Platform
 
 - Stable plugin/helper interfaces for adding new runtime providers
 - Published runtime/provider API and contribution guidelines
@@ -98,6 +98,7 @@ proprietary CrossOver features.
 ## Strategic Decisions to Lock Early
 
 - Primary identity: game launcher, runtime manager, or balanced hybrid
+  (decision criteria: user outcomes, maintenance cost, and support burden)
 - CrossOver scope: shallow interoperability first vs deeper integration later
 - Preset distribution model: bundled, curated catalog, or user-installed
 - Automation boundaries: what is safe and supportable without legal risk
