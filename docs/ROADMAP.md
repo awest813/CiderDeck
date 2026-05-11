@@ -100,10 +100,16 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 
 - Primary identity: game launcher, runtime manager, or balanced hybrid
   (decision criteria: user outcomes, maintenance cost, and support burden;
-  decide by v0.3 after v0.2 runtime-layer feedback)
+  decide by end of v0.2 to inform v0.3 architecture)
 - CrossOver scope: shallow interoperability first vs deeper integration later
+  (decision criteria: legal review, user demand, and long-term maintenance;
+  decide by end of v0.2)
 - Preset distribution model: bundled, curated catalog, or user-installed
+  (decision criteria: moderation burden, licensing clarity, and UX simplicity;
+  decide by v0.4)
 - Automation boundaries: what is safe and supportable without legal risk
+  (decision criteria: legal constraints, safety, and support overhead;
+  decide by v0.4 before wider preset/community rollout)
 
 ## Out of Scope (Long-Term)
 
