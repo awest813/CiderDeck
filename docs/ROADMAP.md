@@ -16,8 +16,8 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
   reimplementation project
 - No bundled proprietary game data, no anti-cheat workarounds, and no DRM
   circumvention tooling
-- "macOS Proton-style" means curated runtime + per-game presets and safe
-  toggles, not a literal Proton port
+- "macOS Proton-style" means curated runtime + per-game presets and reversible
+  toggles that avoid privileged/system-file changes, not a literal Proton port
 - CrossOver integration is treated as interoperability with existing installs
   first (launching and using existing bottles); creating or modifying
   CrossOver-managed bottles is a later milestone decision
@@ -99,13 +99,15 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 ## Strategic Decisions to Lock Early
 
 - Primary identity: game launcher, runtime manager, or balanced hybrid
-  (decision criteria: user outcomes, maintenance cost, and support burden;
+  (decision criteria: reduced setup friction, reduced support volume,
+  maintenance cost, and support burden;
   decide by end of v0.2 to inform v0.3 architecture)
 - CrossOver scope: shallow interoperability first vs deeper integration later
   (decision criteria: legal review, user demand, and long-term maintenance;
   decide by end of v0.2)
 - Preset distribution model: bundled, curated catalog, or user-installed
-  (decision criteria: moderation burden, licensing clarity, and UX simplicity;
+  (decision criteria: moderation burden, GPL compatibility and third-party
+  distribution rights clarity, and UX simplicity;
   decide by v0.4)
 - Automation boundaries: what is safe and supportable without legal risk
   (decision criteria: legal constraints, safety, and support overhead;
