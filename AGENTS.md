@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository is a template with sensible defaults for building Tauri React apps.
+A macOS compatibility launcher for managing Windows games through Wine, CrossOver, Whisky, and Apple Game Porting Toolkit.
 
 ## Core Rules
 
