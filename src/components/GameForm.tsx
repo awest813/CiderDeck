@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createId } from '@/lib/storage'
@@ -97,7 +97,7 @@ export function GameForm({ game, onSave }: GameFormProps) {
     setFormState(currentState => ({ ...currentState, [field]: value }))
   }
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const now = new Date().toISOString()
