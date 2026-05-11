@@ -7,8 +7,8 @@ an open-source compatibility manager for Windows games on macOS.
 ## Product Goal
 
 Make CiderDeck the open-source, macOS-first game compatibility manager:
-a "macOS Lutris" with Proton-style convenience, without copying
-proprietary CrossOver features.
+a "macOS Lutris" with Proton-style convenience while respecting
+CrossOver intellectual property and avoiding proprietary feature cloning.
 
 ## Product Boundaries
 
@@ -19,7 +19,8 @@ proprietary CrossOver features.
 - "macOS Proton-style" means curated runtime + per-game presets and safe
   toggles, not a literal Proton port
 - CrossOver integration is treated as interoperability with existing installs
-  first; deeper bottle management is a later milestone decision
+  first (launching and using existing bottles); creating or modifying
+  CrossOver-managed bottles is a later milestone decision
 
 ## Milestones
 
@@ -98,7 +99,8 @@ proprietary CrossOver features.
 ## Strategic Decisions to Lock Early
 
 - Primary identity: game launcher, runtime manager, or balanced hybrid
-  (decision criteria: user outcomes, maintenance cost, and support burden)
+  (decision criteria: user outcomes, maintenance cost, and support burden;
+  decide by v0.3 after v0.2 runtime-layer feedback)
 - CrossOver scope: shallow interoperability first vs deeper integration later
 - Preset distribution model: bundled, curated catalog, or user-installed
 - Automation boundaries: what is safe and supportable without legal risk
