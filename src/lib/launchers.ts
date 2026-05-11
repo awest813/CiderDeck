@@ -125,7 +125,7 @@ export const launchGame = async (game: GameEntry): Promise<LaunchLog> => {
         command,
         stdout: result.data.stdout,
         stderr: result.data.stderr,
-        exitCode: result.data.exit_code ?? undefined,
+        exitCode: result.data.exit_code,
       }
     }
 
@@ -137,6 +137,7 @@ export const launchGame = async (game: GameEntry): Promise<LaunchLog> => {
       command,
       stdout: '',
       stderr: `Launch failed: ${result.error}`,
+      exitCode: null,
     }
   }
 
@@ -152,5 +153,6 @@ export const launchGame = async (game: GameEntry): Promise<LaunchLog> => {
       'Browser preview mode: no native process was spawned.',
     ].join('\n'),
     stderr: '',
+    exitCode: null,
   }
 }
