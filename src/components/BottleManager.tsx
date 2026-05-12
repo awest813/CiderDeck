@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef, useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -137,6 +147,7 @@ export function BottleManager() {
   const [showCreate, setShowCreate] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<Bottle | null>(null)
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -269,7 +280,7 @@ export function BottleManager() {
                             size="sm"
                             className="h-6 text-xs text-destructive"
                             aria-label={`Delete bottle ${bottle.name}`}
-                            onClick={() => handleDelete(bottle)}
+                            onClick={() => setConfirmDelete(bottle)}
                             disabled={deleting === bottle.id}
                           >
                             {deleting === bottle.id ? '...' : 'Delete'}
@@ -297,6 +308,38 @@ export function BottleManager() {
             onCancel={() => setShowCreate(false)}
           />
         ) : null}
+
+        <AlertDialog
+          open={confirmDelete !== null}
+          onOpenChange={open => {
+            if (!open) setConfirmDelete(null)
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete bottle?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmDelete
+                  ? `"${confirmDelete.name}" and all its files will be permanently deleted. This cannot be undone.`
+                  : ''}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (confirmDelete) {
+                    handleDelete(confirmDelete)
+                    setConfirmDelete(null)
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   )

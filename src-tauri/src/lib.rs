@@ -178,7 +178,7 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             RunEvent::Reopen { .. } => {
                 if let Some(window) = app_handle.get_webview_window("main") {
-                    if !window.is_visible().unwrap_or(true) {
+                    if !window.is_visible().unwrap_or(false) {
                         let _ = window.show();
 
                         // The window-state plugin only auto-restores on app startup, not after

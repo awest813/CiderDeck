@@ -41,6 +41,7 @@ export function Sidebar({
             'justify-between',
             activePage === 'library' && 'font-semibold'
           )}
+          aria-current={activePage === 'library' ? 'page' : undefined}
           onClick={() => onPageChange('library')}
         >
           Library
@@ -55,6 +56,7 @@ export function Sidebar({
             'justify-between',
             activePage === 'profiles' && 'font-semibold'
           )}
+          aria-current={activePage === 'profiles' ? 'page' : undefined}
           onClick={() => onPageChange('profiles')}
         >
           Profiles
@@ -69,6 +71,7 @@ export function Sidebar({
             'justify-start',
             activePage === 'settings' && 'font-semibold'
           )}
+          aria-current={activePage === 'settings' ? 'page' : undefined}
           onClick={() => onPageChange('settings')}
         >
           Settings

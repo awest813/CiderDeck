@@ -54,7 +54,13 @@ export const parseEnvText = (
     const idx = trimmed.indexOf('=')
     if (idx <= 0) continue
     const key = trimmed.slice(0, idx).trim()
-    const value = trimmed.slice(idx + 1).trim()
+    let value = trimmed.slice(idx + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
     if (key) env[key] = value
   }
   return Object.keys(env).length > 0 ? env : undefined

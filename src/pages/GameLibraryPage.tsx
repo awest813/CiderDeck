@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { GameCard } from '@/components/GameCard'
 import { GameDetailPanel } from '@/components/GameDetailPanel'
@@ -70,11 +71,24 @@ export function GameLibraryPage() {
     }
   }
 
+  const [launching, setLaunching] = useState<string | null>(null)
+
   const handleLaunch = async (game: Game) => {
     if (game.profileIds.length === 0) return
     const profile = profiles.find(p => p.id === game.profileIds[0])
-    if (profile) {
-      await launchProfile(profile)
+    if (!profile) return
+    setLaunching(game.id)
+    try {
+      const entry = await launchProfile(profile)
+      if (entry.exitCode !== null && entry.exitCode !== 0) {
+        toast.error(`Launch exited with code ${entry.exitCode}`, {
+          description: entry.stderr || undefined,
+        })
+      }
+    } catch {
+      toast.error('Failed to launch game')
+    } finally {
+      setLaunching(null)
     }
   }
 
@@ -89,13 +103,14 @@ export function GameLibraryPage() {
     )
     const existingTitles = new Set(games.map(g => g.title.toLowerCase()))
 
+    const toImport: GameImport[] = []
     for (const g of detected) {
       const exeLower = g.exe_path.toLowerCase()
       const titleLower = g.name.toLowerCase()
       if (existingPaths.has(exeLower) || existingTitles.has(titleLower)) {
         continue
       }
-      const gameImport: GameImport = {
+      toImport.push({
         title: g.name,
         profileIds: [],
         tags: [],
@@ -103,9 +118,20 @@ export function GameLibraryPage() {
         installPath: g.exe_path,
         artworkPath: null,
         importSource: 'ExeMsi',
-      }
+      })
+    }
+
+    if (toImport.length === 0) {
+      toast.info('All detected games already exist in your library')
+      return
+    }
+
+    for (const gameImport of toImport) {
       importGame.mutate(gameImport)
     }
+    toast.success(
+      `Importing ${toImport.length} game${toImport.length === 1 ? '' : 's'}`
+    )
   }
 
   const profileCountFor = (game: Game): number =>
@@ -218,6 +244,7 @@ export function GameLibraryPage() {
                 onLaunch={handleLaunch}
                 onDelete={handleDeleteGame}
                 profileCount={profileCountFor(game)}
+                launching={launching === game.id}
               />
             ))}
           </div>
@@ -226,6 +253,8 @@ export function GameLibraryPage() {
             {filteredGames.map(game => (
               <div
                 key={game.id}
+                role="button"
+                tabIndex={0}
                 className={cn(
                   'flex items-center justify-between rounded-lg border p-3 transition-all duration-150 cursor-pointer hover:shadow-sm',
                   game.id === selectedGameId
@@ -233,6 +262,12 @@ export function GameLibraryPage() {
                     : 'border-transparent bg-card hover:border-border'
                 )}
                 onClick={() => setSelectedGameId(game.id)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectedGameId(game.id)
+                  }
+                }}
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{game.title}</p>
@@ -250,9 +285,11 @@ export function GameLibraryPage() {
                     e.stopPropagation()
                     handleLaunch(game)
                   }}
-                  disabled={game.profileIds.length === 0}
+                  disabled={
+                    game.profileIds.length === 0 || launching === game.id
+                  }
                 >
-                  Launch
+                  {launching === game.id ? 'Launching...' : 'Launch'}
                 </Button>
               </div>
             ))}

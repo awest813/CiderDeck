@@ -18,7 +18,6 @@ export function usePreferences() {
       const result = await commands.loadPreferences()
 
       if (result.status === 'error') {
-        // Return defaults if preferences file doesn't exist yet
         logger.warn('Failed to load preferences, using defaults', {
           error: result.error,
         })

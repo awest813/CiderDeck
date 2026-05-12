@@ -21,9 +21,10 @@ interface GameCardProps {
   game: Game
   selected: boolean
   onSelect: (gameId: string) => void
-  onLaunch: (game: Game) => void
+  onLaunch: (game: Game) => Promise<void>
   onDelete: (gameId: string) => void
   profileCount: number
+  launching: boolean
 }
 
 const importSourceLabel: Record<string, string> = {
@@ -39,6 +40,7 @@ export function GameCard({
   onLaunch,
   onDelete,
   profileCount,
+  launching,
 }: GameCardProps) {
   return (
     <Card
@@ -46,7 +48,15 @@ export function GameCard({
         'group cursor-pointer overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg',
         selected && 'ring-2 ring-primary'
       )}
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(game.id)}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect(game.id)
+        }
+      }}
     >
       <div className="relative flex h-40 items-center justify-center overflow-hidden bg-muted">
         {game.artworkPath ? (
@@ -54,7 +64,7 @@ export function GameCard({
             <div
               className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 img-premium"
               style={{
-                backgroundImage: `url("${game.artworkPath.replace(/"/g, '')}")`,
+                backgroundImage: `url("${CSS.escape(game.artworkPath)}")`,
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -97,9 +107,9 @@ export function GameCard({
             type="button"
             size="sm"
             onClick={() => onLaunch(game)}
-            disabled={profileCount === 0}
+            disabled={profileCount === 0 || launching}
           >
-            Launch
+            {launching ? 'Launching...' : 'Launch'}
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>

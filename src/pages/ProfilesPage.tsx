@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { AddProfileWizard } from '@/components/AddProfileWizard'
 import { ProfileForm } from '@/components/profile-forms/ProfileForm'
@@ -65,14 +66,23 @@ export function ProfilesPage({ profiles }: ProfilesPageProps) {
 
   const handleLaunch = async (profile: CiderDeckProfile) => {
     setSelectedProfileId(profile.id)
-    const entry = await launchProfile(profile)
-    setLogsByProfile(current => ({
-      ...current,
-      [profile.id]: [entry, ...(current[profile.id] ?? [])].slice(
-        0,
-        SESSION_LOG_LIMIT
-      ),
-    }))
+    try {
+      const entry = await launchProfile(profile)
+      setLogsByProfile(current => ({
+        ...current,
+        [profile.id]: [entry, ...(current[profile.id] ?? [])].slice(
+          0,
+          SESSION_LOG_LIMIT
+        ),
+      }))
+      if (entry.exitCode !== null && entry.exitCode !== 0) {
+        toast.error(`Launch exited with code ${entry.exitCode}`, {
+          description: entry.stderr || undefined,
+        })
+      }
+    } catch {
+      toast.error('Failed to launch profile')
+    }
   }
 
   const profilesByCategory = CATEGORIES.map(category => ({

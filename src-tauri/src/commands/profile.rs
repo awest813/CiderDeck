@@ -87,22 +87,14 @@ pub async fn migrate_from_local_storage(
         return Ok(0);
     }
 
-    let valid_count = parsed
-        .iter()
-        .filter(|v| {
-            v.is_object()
-                && v.get("id").is_some()
-                && v.get("title").is_some()
-                && v.get("helper").is_some()
-                && v.get("category").is_some()
-                && v.get("status").is_some()
-        })
-        .count();
+    let valid: Vec<Value> = filter_valid_profiles(parsed);
 
-    if valid_count == 0 {
+    if valid.is_empty() {
         log::warn!("Migration data contains no valid profiles");
         return Ok(0);
     }
+
+    let count = valid.len() as u32;
 
     let path = profiles_file(&app)?;
 
@@ -117,8 +109,59 @@ pub async fn migrate_from_local_storage(
         }
     }
 
-    let count = valid_count as u32;
-    write_profiles_atomic(&path, &parsed)?;
+    write_profiles_atomic(&path, &valid)?;
     log::info!("Migrated {count} profiles from localStorage");
     Ok(count)
+}
+
+fn filter_valid_profiles(parsed: Vec<Value>) -> Vec<Value> {
+    parsed
+        .into_iter()
+        .filter(|v| {
+            v.is_object()
+                && v.get("id").is_some()
+                && v.get("title").is_some()
+                && v.get("helper").is_some()
+                && v.get("category").is_some()
+                && v.get("status").is_some()
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn filter_removes_invalid_profiles() {
+        let parsed = vec![
+            json!({ "id": "a", "title": "Game A", "helper": "wine", "category": "compatibility-layer", "status": "ready" }),
+            json!({ "no_id": true }),
+            json!({ "id": "b", "title": "Game B" }),
+            json!({ "id": "c", "title": "Game C", "helper": "dosbox", "category": "dosbox", "status": "unconfigured" }),
+            json!("not an object"),
+        ];
+        let valid = filter_valid_profiles(parsed);
+        assert_eq!(valid.len(), 2);
+        assert_eq!(valid[0]["id"], "a");
+        assert_eq!(valid[1]["id"], "c");
+    }
+
+    #[test]
+    fn filter_empty_returns_empty() {
+        let valid = filter_valid_profiles(vec![]);
+        assert!(valid.is_empty());
+    }
+
+    #[test]
+    fn filter_all_invalid_returns_empty() {
+        let parsed = vec![
+            json!({"id": "x"}),
+            json!({"title": "y"}),
+            json!(null),
+        ];
+        let valid = filter_valid_profiles(parsed);
+        assert!(valid.is_empty());
+    }
 }
