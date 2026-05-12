@@ -82,13 +82,25 @@ export function GameLibraryPage() {
     detected: DetectedGame[],
     _source: GameImportSource
   ) => {
+    const existingPaths = new Set(
+      games
+        .map(g => g.installPath?.toLowerCase())
+        .filter((p): p is string => p != null)
+    )
+    const existingTitles = new Set(games.map(g => g.title.toLowerCase()))
+
     for (const g of detected) {
+      const exeLower = g.exe_path.toLowerCase()
+      const titleLower = g.name.toLowerCase()
+      if (existingPaths.has(exeLower) || existingTitles.has(titleLower)) {
+        continue
+      }
       const gameImport: GameImport = {
         title: g.name,
         profileIds: [],
         tags: [],
         notes: null,
-        installPath: null,
+        installPath: g.exe_path,
         artworkPath: null,
         importSource: 'ExeMsi',
       }
