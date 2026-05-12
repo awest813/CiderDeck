@@ -234,6 +234,62 @@ async deleteBottle(bottlePath: string) : Promise<Result<string, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async listGames() : Promise<Result<Game[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_games") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async saveGame(game: Game) : Promise<Result<Game, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_game", { game }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async deleteGame(gameId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_game", { gameId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async importGame(import_: GameImport) : Promise<Result<Game, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("import_game", { import: import_ }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async listProfiles() : Promise<Result<JsonValue[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_profiles") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async saveProfiles(profiles: JsonValue[]) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_profiles", { profiles }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async migrateFromLocalStorage(profilesJson: string) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("migrate_from_local_storage", { profilesJson }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -307,6 +363,18 @@ export type RecoveryError =
  * JSON serialization/deserialization error
  */
 { type: "ParseError"; message: string }
+/**
+ * How the game was imported into the library.
+ */
+export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi"
+/**
+ * A game entry in the library.
+ */
+export type Game = { id: string; title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[]; createdAt: string; updatedAt: string }
+/**
+ * Data needed to import a new game into the library.
+ */
+export type GameImport = { title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[] }
 
 /** tauri-specta globals **/
 

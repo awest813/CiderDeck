@@ -8,12 +8,7 @@ import { ProfileLibrary } from '@/components/ProfileLibrary'
 import { ProfileLogViewer } from '@/components/ProfileLogViewer'
 import { ValidationPanel } from '@/components/ValidationPanel'
 import { CATEGORIES } from '@/lib/helper-catalog'
-import { cn } from '@/lib/utils'
-import {
-  deleteProfile,
-  saveProfiles,
-  upsertProfile,
-} from '@/lib/profile-storage'
+import { useUpsertProfile, useDeleteProfile } from '@/services/profile-store'
 import { fetchPersistedLogs, launchProfile } from '@/lib/profile-runner'
 import type { CiderDeckProfile, ProfileLogEntry } from '@/types/Profile'
 
@@ -21,18 +16,17 @@ const SESSION_LOG_LIMIT = 30
 
 interface ProfilesPageProps {
   profiles: CiderDeckProfile[]
-  onProfilesChange: (profiles: CiderDeckProfile[]) => void
 }
 
-export function ProfilesPage({
-  profiles,
-  onProfilesChange,
-}: ProfilesPageProps) {
+export function ProfilesPage({ profiles }: ProfilesPageProps) {
   const [selectedProfileId, setSelectedProfileId] = useState<string>()
   const [logsByProfile, setLogsByProfile] = useState<
     Record<string, ProfileLogEntry[]>
   >({})
   const [showWizard, setShowWizard] = useState(false)
+
+  const upsertMutation = useUpsertProfile()
+  const deleteMutation = useDeleteProfile()
 
   const selectedProfile = profiles.find(
     profile => profile.id === selectedProfileId
@@ -55,17 +49,13 @@ export function ProfilesPage({
   }, [selectedProfileId])
 
   const handleSave = (profile: CiderDeckProfile) => {
-    const next = upsertProfile(profiles, profile)
-    saveProfiles(next)
-    onProfilesChange(next)
+    upsertMutation.mutate({ profiles, profile })
     setSelectedProfileId(profile.id)
     setShowWizard(false)
   }
 
   const handleDelete = (profileId: string) => {
-    const next = deleteProfile(profiles, profileId)
-    saveProfiles(next)
-    onProfilesChange(next)
+    deleteMutation.mutate({ profiles, profileId })
     if (selectedProfileId === profileId) setSelectedProfileId(undefined)
     setLogsByProfile(current => {
       const { [profileId]: _removed, ...rest } = current
@@ -116,10 +106,9 @@ export function ProfilesPage({
           {profilesByCategory.map(({ category, count }) => (
             <div
               key={category.id}
-              className={cn(
-                'rounded-lg border bg-card p-3 transition-opacity',
-                count === 0 && 'opacity-40'
-              )}
+              className={`rounded-lg border bg-card p-3 transition-opacity ${
+                count === 0 ? 'opacity-40' : ''
+              }`}
             >
               <p className="text-sm font-semibold">{category.label}</p>
               <p className="mt-1 text-xs text-muted-foreground">{count}</p>

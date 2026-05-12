@@ -1,28 +1,26 @@
-import { render, screen } from '@/test/test-utils'
+import { render, screen, waitFor } from '@/test/test-utils'
 import { describe, it, expect } from 'vitest'
 import App from './App'
 
-// Tauri bindings are mocked globally in src/test/setup.ts
-
 describe('App', () => {
-  it('renders main window layout', () => {
+  it('renders without crashing', () => {
     render(<App />)
-    expect(
-      screen.getByRole('heading', { name: 'Profiles', level: 2 })
-    ).toBeInTheDocument()
   })
 
-  it('renders title bar with traffic light buttons', () => {
+  it('renders title bar with window control buttons', () => {
     render(<App />)
-    // Find specifically the window control buttons in the title bar
-    const titleBarButtons = screen
+    const windowButtons = screen
       .getAllByRole('button')
       .filter(
-        button =>
-          button.getAttribute('aria-label')?.includes('window') ||
-          button.className.includes('window-control')
+        button => button.getAttribute('aria-label')?.includes('window') ?? false
       )
-    // Should have at least the window control buttons
-    expect(titleBarButtons.length).toBeGreaterThan(0)
+    expect(windowButtons.length).toBeGreaterThan(0)
+  })
+
+  it('renders game library when data loads', async () => {
+    render(<App />)
+    await waitFor(() => {
+      expect(screen.getByText('Game Library')).toBeInTheDocument()
+    })
   })
 })

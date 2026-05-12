@@ -4,9 +4,11 @@
 //! Import specific commands via their submodule (e.g., `commands::preferences::greet`).
 
 pub mod bottle;
+pub mod game;
 pub mod launcher;
 pub mod notifications;
 pub mod preferences;
+pub mod profile;
 pub mod quick_pane;
 pub mod recovery;
 pub mod runtime;

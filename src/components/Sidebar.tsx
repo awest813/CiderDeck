@@ -3,16 +3,18 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-export type SidebarPage = 'profiles' | 'settings'
+export type SidebarPage = 'library' | 'profiles' | 'settings'
 
 interface SidebarProps {
   activePage: SidebarPage
+  gameCount: number
   profileCount: number
   onPageChange: (page: SidebarPage) => void
 }
 
 export function Sidebar({
   activePage,
+  gameCount,
   profileCount,
   onPageChange,
 }: SidebarProps) {
@@ -30,6 +32,20 @@ export function Sidebar({
       </div>
 
       <nav className="flex flex-col gap-2">
+        <Button
+          type="button"
+          variant={activePage === 'library' ? 'secondary' : 'ghost'}
+          className={cn(
+            'justify-between',
+            activePage === 'library' && 'font-semibold'
+          )}
+          onClick={() => onPageChange('library')}
+        >
+          Library
+          <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+            {gameCount}
+          </span>
+        </Button>
         <Button
           type="button"
           variant={activePage === 'profiles' ? 'secondary' : 'ghost'}
@@ -58,9 +74,9 @@ export function Sidebar({
       </nav>
 
       <div className="mt-auto rounded-lg border bg-background p-3 text-xs leading-relaxed text-muted-foreground">
-        v0.1 uses local browser storage. Native launching uses structured Rust
-        commands — no shells, no string concatenation. Bring your own legally
-        obtained game data.
+        Profiles and games are persisted through the native Rust backend. Native
+        launching uses structured commands — no shells, no string concatenation.
+        Bring your own legally obtained game data.
       </div>
     </aside>
   )

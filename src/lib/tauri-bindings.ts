@@ -22,7 +22,19 @@
  */
 
 export { commands, type Result } from './bindings'
-export type { AppPreferences, Bottle, BottleHealth, JsonValue, ProcessOutcome, ProfileLogEntry, RecoveryError, RuntimeInfo } from './bindings'
+export type {
+  AppPreferences,
+  Bottle,
+  BottleHealth,
+  Game,
+  GameImport,
+  GameImportSource,
+  JsonValue,
+  ProcessOutcome,
+  ProfileLogEntry,
+  RecoveryError,
+  RuntimeInfo,
+} from './bindings'
 
 /**
  * Helper to unwrap a Result type, throwing on error
