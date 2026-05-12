@@ -189,6 +189,51 @@ async readLogs(profileId: string) : Promise<Result<ProfileLogEntry[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Detect all installed compatibility runtimes (Wine, Whisky, CrossOver, GPTK).
+ */
+async detectRuntimes() : Promise<RuntimeInfo[]> {
+    return await TAURI_INVOKE("detect_runtimes");
+},
+/**
+ * Detect all Wine/Whisky/CrossOver/GPTK bottles on the system.
+ */
+async detectBottles() : Promise<Bottle[]> {
+    return await TAURI_INVOKE("detect_bottles");
+},
+/**
+ * Get detailed metadata for a specific bottle by path.
+ */
+async getBottleMeta(bottlePath: string) : Promise<Result<Bottle, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_bottle_meta", { bottlePath }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Create a new Wine prefix at the given path.
+ */
+async createBottle(bottlePath: string, name: string, runtime: string) : Promise<Result<Bottle, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("create_bottle", { bottlePath, name, runtime }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Delete a bottle's filesystem data.
+ */
+async deleteBottle(bottlePath: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_bottle", { bottlePath }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -202,6 +247,18 @@ async readLogs(profileId: string) : Promise<Result<ProfileLogEntry[], string>> {
 
 /** user-defined types **/
 
+/**
+ * Info about a detected compatibility runtime.
+ */
+export type RuntimeInfo = { id: string; name: string; available: boolean; version: string | null; executable_path: string | null; error: string | null }
+/**
+ * Health status of a bottle / prefix.
+ */
+export type BottleHealth = "Good" | "Warning" | "Broken"
+/**
+ * Info about a detected or managed bottle / prefix.
+ */
+export type Bottle = { id: string; name: string; runtime: string; path: string; runtime_version: string | null; architecture: string | null; windows_version: string | null; installed_components: string[]; storage_bytes: number | null; notes: string | null; health: BottleHealth }
 /**
  * Application preferences that persist to disk.
  * Only contains settings that should be saved between sessions.

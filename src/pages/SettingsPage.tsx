@@ -1,6 +1,15 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import { Button } from '@/components/ui/button'
+import { BottleManager } from '@/components/BottleManager'
+import { useRuntimeDetection } from '@/hooks/use-runtime-detection'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { isTauri } from '@tauri-apps/api/core'
 
 export function SettingsPage() {
+  const { runtimes, loading, refetch } = useRuntimeDetection()
+
   return (
     <div className="space-y-6 p-6">
       <div>
@@ -12,14 +21,64 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Planned Configuration</CardTitle>
+          <CardTitle>Compatibility Runtimes</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>Wine, CrossOver, Whisky, and GPTK executable detection.</p>
-          <p>Local JSON file location and future SQLite migration controls.</p>
-          <p>Safe log retention and AI troubleshooting preferences.</p>
+        <CardContent className="space-y-3 text-sm">
+          {!isTauri() ? (
+            <p className="text-muted-foreground">
+              Runtime detection is only available when running in a native Tauri
+              environment.
+            </p>
+          ) : loading ? (
+            <p className="text-muted-foreground">Detecting runtimes...</p>
+          ) : runtimes.length === 0 ? (
+            <p className="text-muted-foreground">
+              No runtimes detected. Install Wine, Whisky, CrossOver, or Apple
+              Game Porting Toolkit to get started.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {runtimes.map(runtime => (
+                <div
+                  key={runtime.id}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div>
+                    <p className="font-medium">{runtime.name}</p>
+                    {runtime.version ? (
+                      <p className="text-xs text-muted-foreground">
+                        {runtime.version}
+                      </p>
+                    ) : null}
+                    {runtime.executable_path ? (
+                      <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                        {runtime.executable_path}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Badge variant={runtime.available ? 'default' : 'secondary'}>
+                    {runtime.available ? 'Detected' : 'Not found'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={loading}
+            >
+              Re-detect runtimes
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <BottleManager />
     </div>
   )
 }

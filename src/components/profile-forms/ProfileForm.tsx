@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useState, type FormEvent } from 'react'
+import { useState, useMemo, type FormEvent } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { useBottleDetection } from '@/hooks/use-bottle-detection'
 import { newProfileTimestamps } from '@/lib/profile-storage'
 import {
   joinArgs,
@@ -661,6 +662,13 @@ export function ProfileForm({
     initial ? stateFromProfile(initial) : stateFromHelper(helper)
   )
 
+  const { bottles } = useBottleDetection()
+
+  const matchingBottles = useMemo(
+    () => bottles.filter(b => b.runtime === state.backend),
+    [bottles, state.backend]
+  )
+
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setState(current => ({ ...current, [key]: value }))
 
@@ -706,11 +714,41 @@ export function ProfileForm({
                 />
               </Field>
             )}
-            <Field label="Bottle / WINEPREFIX path">
-              <Input
-                value={state.bottlePath}
-                onChange={e => update('bottlePath', e.target.value)}
-              />
+            <Field label="Bottle / WINEPREFIX">
+              {matchingBottles.length > 0 ? (
+                <Select
+                  value={
+                    matchingBottles.some(b => b.path === state.bottlePath)
+                      ? state.bottlePath
+                      : state.bottlePath
+                        ? '__custom__'
+                        : ''
+                  }
+                  onChange={e =>
+                    update(
+                      'bottlePath',
+                      e.target.value === '__custom__' ? '' : e.target.value
+                    )
+                  }
+                >
+                  <option value="">-- Choose a bottle --</option>
+                  {matchingBottles.map(bottle => (
+                    <option key={bottle.id} value={bottle.path}>
+                      {bottle.name}
+                    </option>
+                  ))}
+                  <option value="__custom__">Custom path...</option>
+                </Select>
+              ) : null}
+              {matchingBottles.length === 0 ||
+              state.bottlePath === '' ||
+              !matchingBottles.some(b => b.path === state.bottlePath) ? (
+                <Input
+                  value={state.bottlePath}
+                  onChange={e => update('bottlePath', e.target.value)}
+                  placeholder="~/path/to/prefix"
+                />
+              ) : null}
             </Field>
             <Field label="Environment variables (KEY=value per line)">
               <Textarea
