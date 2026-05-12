@@ -95,7 +95,7 @@ export function ProfileCard({
   return (
     <Card
       className={cn(
-        'gap-4 py-4 transition-colors',
+        'gap-4 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg',
         selected
           ? 'border-primary bg-primary/5'
           : 'hover:border-primary/40 hover:bg-accent/30'
@@ -105,14 +105,14 @@ export function ProfileCard({
         <CardTitle className="flex items-start justify-between gap-3">
           <button
             type="button"
-            className="cursor-pointer text-start text-lg font-semibold"
+            className="cursor-pointer text-start text-lg font-semibold tracking-tight"
             onClick={() => onSelect(profile.id)}
           >
             {profile.title}
           </button>
           <span
             className={cn(
-              'rounded-full px-2 py-1 text-xs font-medium capitalize',
+              'rounded-full px-2.5 py-1 text-xs font-medium capitalize shadow-sm',
               statusBadgeClass[profile.status]
             )}
           >

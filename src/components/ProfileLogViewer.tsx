@@ -30,7 +30,7 @@ export function ProfileLogViewer({ profile, logs }: ProfileLogViewerProps) {
             {logs.map(entry => (
               <article
                 key={entry.id}
-                className="rounded-lg border bg-muted/30 p-3"
+                className="rounded-xl border bg-card p-3 shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 <div className="mb-2 flex items-center justify-between gap-3 text-xs">
                   <span className="font-mono text-muted-foreground">
@@ -54,7 +54,7 @@ export function ProfileLogViewer({ profile, logs }: ProfileLogViewerProps) {
                     </span>
                   </p>
                 ) : null}
-                <pre className="overflow-auto rounded bg-background p-3 text-xs whitespace-pre-wrap">
+                <pre className="overflow-auto rounded-lg bg-muted/50 p-3 text-xs whitespace-pre-wrap">
                   {entry.stdout || '(no stdout)'}
                   {entry.stderr ? `\n\nstderr:\n${entry.stderr}` : ''}
                 </pre>

@@ -100,14 +100,14 @@ export function GameImportDialog({
                 <button
                   key={s.value}
                   type="button"
-                  className={`rounded-lg border p-2 text-start text-sm transition-colors ${
+                  className={`rounded-xl border bg-card p-2.5 text-start text-sm shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md ${
                     source === s.value
                       ? 'border-primary bg-primary/5'
                       : 'hover:border-primary/40'
                   }`}
                   onClick={() => setSource(s.value)}
                 >
-                  <p className="font-medium">{s.label}</p>
+                  <p className="font-medium tracking-tight">{s.label}</p>
                   <p className="text-xs text-muted-foreground">
                     {s.description}
                   </p>

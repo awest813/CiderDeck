@@ -20,10 +20,13 @@ export function ProfileLibrary({
 }: ProfileLibraryProps) {
   if (profiles.length === 0) {
     return (
-      <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed p-8 text-center">
-        <div>
-          <h2 className="text-xl font-semibold">No profiles yet</h2>
-          <p className="mt-2 text-muted-foreground">
+      <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed bg-muted/30 p-8 text-center transition-colors hover:border-muted-foreground/25">
+        <div className="space-y-2">
+          <p className="text-4xl text-muted-foreground/20 select-none">⚙️</p>
+          <h2 className="text-xl font-semibold tracking-tight">
+            No profiles yet
+          </h2>
+          <p className="text-sm text-muted-foreground">
             Add your first profile to start managing helpers, ports, emulators,
             or recompilation projects.
           </p>

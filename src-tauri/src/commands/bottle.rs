@@ -579,7 +579,8 @@ fn looks_like_game(name: &str, exe_name: &str) -> bool {
         }
     }
 
-    if lower.contains("cider") || lower.contains("wrapper")
+    if lower.contains("cider")
+        || lower.contains("wrapper")
         || lower.contains("prefix")
         || lower.contains("system")
     {
@@ -606,10 +607,7 @@ fn parse_uninstall_reg(path: &Path) -> Vec<(String, String, Option<String>, Opti
         let line = line.trim();
         if line.starts_with('[') {
             if !current_key.is_empty() && display_name.is_some() {
-                if let Some(exe) = uninstall_str
-                    .as_ref()
-                    .and_then(|s| extract_exe_path(s))
-                {
+                if let Some(exe) = uninstall_str.as_ref().and_then(|s| extract_exe_path(s)) {
                     let name = display_name.clone().unwrap_or_default();
                     let exe_name = std::path::Path::new(&exe)
                         .file_stem()
@@ -617,12 +615,7 @@ fn parse_uninstall_reg(path: &Path) -> Vec<(String, String, Option<String>, Opti
                         .unwrap_or_default();
 
                     if looks_like_game(&name, &exe_name) {
-                        results.push((
-                            name,
-                            exe,
-                            publisher.clone(),
-                            version.clone(),
-                        ));
+                        results.push((name, exe, publisher.clone(), version.clone()));
                     }
                 }
             }
@@ -646,10 +639,7 @@ fn parse_uninstall_reg(path: &Path) -> Vec<(String, String, Option<String>, Opti
     }
 
     if !current_key.is_empty() && display_name.is_some() {
-        if let Some(exe) = uninstall_str
-            .as_ref()
-            .and_then(|s| extract_exe_path(s))
-        {
+        if let Some(exe) = uninstall_str.as_ref().and_then(|s| extract_exe_path(s)) {
             let name = display_name.clone().unwrap_or_default();
             let exe_name = std::path::Path::new(&exe)
                 .file_stem()
@@ -666,8 +656,8 @@ fn parse_uninstall_reg(path: &Path) -> Vec<(String, String, Option<String>, Opti
 }
 
 fn extract_reg_value(line: &str) -> Option<String> {
-    line.splitn(2, '=')
-        .nth(1)?
+    line.split_once('=')?
+        .1
         .trim()
         .trim_matches('"')
         .trim()
@@ -792,7 +782,7 @@ pub async fn detect_games_from_bottles() -> Vec<DetectedGame> {
     let mut all_games = Vec::new();
 
     for bottle in &bottles {
-        let games = detect_games_in_bottle(&bottle);
+        let games = detect_games_in_bottle(bottle);
         all_games.extend(games);
     }
 

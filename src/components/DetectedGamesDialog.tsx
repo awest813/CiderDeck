@@ -76,17 +76,17 @@ export function DetectedGamesDialog({
             <Spinner className="h-6 w-6" />
           </div>
         ) : detectedGames.length > 0 ? (
-          <div className="max-h-80 space-y-2 overflow-y-auto">
+          <div className="max-h-80 space-y-1.5 overflow-y-auto">
             {detectedGames.map(game => {
               const isSelected = selected.has(game.exe_path)
               return (
                 <label
                   key={game.exe_path}
                   className={cn(
-                    'flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors',
+                    'flex cursor-pointer items-center gap-3 rounded-xl border bg-card p-3 shadow-sm transition-all duration-150',
                     isSelected
-                      ? 'border-primary bg-primary/5'
-                      : 'hover:border-primary/40'
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : 'hover:-translate-y-px hover:border-primary/40 hover:shadow-md'
                   )}
                 >
                   <input

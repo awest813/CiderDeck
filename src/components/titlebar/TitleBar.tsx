@@ -44,16 +44,16 @@ export function TitleBar({ className, title, forcePlatform }: TitleBarProps) {
     return <LinuxTitleBar className={className} title={displayTitle} />
   }
 
+  const titleBarBase = cn(
+    'relative flex h-9 w-full shrink-0 items-center justify-between border-b',
+    'bg-background/80 backdrop-blur-md',
+    className
+  )
+
   // Windows: controls on the right
   if (platform === 'windows') {
     return (
-      <div
-        data-tauri-drag-region
-        className={cn(
-          'relative flex h-8 w-full shrink-0 items-center justify-between border-b bg-background',
-          className
-        )}
-      >
+      <div data-tauri-drag-region className={titleBarBase}>
         {/* Left side - Actions */}
         <div className="flex items-center pl-2">
           <TitleBarLeftActions />
@@ -73,13 +73,7 @@ export function TitleBar({ className, title, forcePlatform }: TitleBarProps) {
 
   // macOS (default): traffic lights on the left
   return (
-    <div
-      data-tauri-drag-region
-      className={cn(
-        'relative flex h-8 w-full shrink-0 items-center justify-between border-b bg-background',
-        className
-      )}
-    >
+    <div data-tauri-drag-region className={titleBarBase}>
       {/* Left side - Window Controls + Actions */}
       <div className="flex items-center">
         <MacOSWindowControls />

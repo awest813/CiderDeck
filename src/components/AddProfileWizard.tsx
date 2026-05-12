@@ -53,9 +53,19 @@ export function AddProfileWizard({
     <Card className="h-fit">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-3">
-          <span>Add Profile</span>
-          <span className="text-xs font-normal text-muted-foreground">
-            Step {step === 'category' ? 1 : step === 'helper' ? 2 : 3} of 3
+          <span className="tracking-tight">Add Profile</span>
+          <span className="flex gap-1.5">
+            {[1, 2, 3].map(n => (
+              <span
+                key={n}
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full transition-colors duration-200',
+                  n === (step === 'category' ? 1 : step === 'helper' ? 2 : 3)
+                    ? 'bg-primary w-4'
+                    : 'bg-muted-foreground/20'
+                )}
+              />
+            ))}
           </span>
         </CardTitle>
       </CardHeader>
@@ -69,12 +79,10 @@ export function AddProfileWizard({
               <button
                 type="button"
                 key={cat.id}
-                className={cn(
-                  'rounded-lg border p-3 text-start transition-colors hover:border-primary hover:bg-primary/5'
-                )}
+                className="rounded-xl border bg-card p-3 text-start shadow-sm transition-all duration-150 hover:-translate-y-px hover:border-primary hover:bg-primary/5 hover:shadow-md"
                 onClick={() => handlePickCategory(cat)}
               >
-                <p className="font-medium">{cat.label}</p>
+                <p className="font-medium tracking-tight">{cat.label}</p>
                 <p className="text-sm text-muted-foreground">{cat.blurb}</p>
               </button>
             ))}
@@ -91,10 +99,12 @@ export function AddProfileWizard({
               <button
                 type="button"
                 key={helperOption.id}
-                className="rounded-lg border p-3 text-start transition-colors hover:border-primary hover:bg-primary/5"
+                className="rounded-xl border bg-card p-3 text-start shadow-sm transition-all duration-150 hover:-translate-y-px hover:border-primary hover:bg-primary/5 hover:shadow-md"
                 onClick={() => handlePickHelper(helperOption)}
               >
-                <p className="font-medium">{helperOption.label}</p>
+                <p className="font-medium tracking-tight">
+                  {helperOption.label}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {helperOption.blurb}
                 </p>

@@ -43,34 +43,35 @@ export function GameCard({
   return (
     <Card
       className={cn(
-        'group cursor-pointer overflow-hidden transition-all hover:shadow-md',
+        'group cursor-pointer overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg',
         selected && 'ring-2 ring-primary'
       )}
       onClick={() => onSelect(game.id)}
     >
-      <div
-        className={cn(
-          'relative flex h-40 items-center justify-center bg-muted',
-          game.artworkPath && 'bg-cover bg-center'
-        )}
-        style={
-          game.artworkPath
-            ? {
+      <div className="relative flex h-40 items-center justify-center overflow-hidden bg-muted">
+        {game.artworkPath ? (
+          <>
+            <div
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 img-premium"
+              style={{
                 backgroundImage: `url("${game.artworkPath.replace(/"/g, '')}")`,
-              }
-            : undefined
-        }
-      >
-        {!game.artworkPath ? (
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          </>
+        ) : (
           <span className="text-4xl text-muted-foreground/30 select-none">
             🎮
           </span>
-        ) : null}
-        <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
+        )}
+        <Badge
+          variant="secondary"
+          className="absolute top-2 right-2 text-xs backdrop-blur-sm bg-background/60"
+        >
           {importSourceLabel[game.importSource] ?? game.importSource}
         </Badge>
         {profileCount > 0 ? (
-          <Badge className="absolute bottom-2 left-2 text-xs">
+          <Badge className="absolute bottom-2 left-2 text-xs shadow-sm">
             {profileCount} {profileCount === 1 ? 'profile' : 'profiles'}
           </Badge>
         ) : null}

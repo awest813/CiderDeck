@@ -84,7 +84,7 @@ export function GameDetailPanel({
         <CardContent className="space-y-4">
           <div
             className={cn(
-              'flex h-32 items-center justify-center rounded-lg bg-muted',
+              'relative flex h-32 items-center justify-center overflow-hidden rounded-lg bg-muted',
               game.artworkPath && 'bg-cover bg-center'
             )}
             style={
@@ -95,6 +95,9 @@ export function GameDetailPanel({
                 : undefined
             }
           >
+            {game.artworkPath && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            )}
             {!game.artworkPath ? (
               <span className="text-3xl text-muted-foreground/30 select-none">
                 🎮
@@ -178,7 +181,7 @@ export function GameDetailPanel({
             linkedProfiles.map(profile => (
               <div
                 key={profile.id}
-                className="flex items-center justify-between rounded-lg border p-2"
+                className="flex items-center justify-between rounded-xl border bg-card p-2 shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 <span className="text-sm">{profile.title}</span>
                 <Button
@@ -205,7 +208,7 @@ export function GameDetailPanel({
               {unlinkedProfiles.slice(0, 5).map(profile => (
                 <div
                   key={profile.id}
-                  className="flex items-center justify-between rounded-lg border border-dashed p-2"
+                  className="flex items-center justify-between rounded-xl border border-dashed p-2 transition-colors hover:border-primary/40 hover:bg-primary/5"
                 >
                   <span className="text-sm text-muted-foreground">
                     {profile.title}

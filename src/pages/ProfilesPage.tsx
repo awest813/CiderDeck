@@ -85,7 +85,7 @@ export function ProfilesPage({ profiles }: ProfilesPageProps) {
       <section className="min-w-0 overflow-auto pr-1">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold">Profiles</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Profiles</h2>
             <p className="mt-1 text-muted-foreground">
               Manage and launch your helpers, source ports, emulators, and
               recompilation projects.
@@ -106,11 +106,13 @@ export function ProfilesPage({ profiles }: ProfilesPageProps) {
           {profilesByCategory.map(({ category, count }) => (
             <div
               key={category.id}
-              className={`rounded-lg border bg-card p-3 transition-opacity ${
+              className={`rounded-xl border bg-card p-3 shadow-sm transition-all duration-200 hover:shadow-md ${
                 count === 0 ? 'opacity-40' : ''
               }`}
             >
-              <p className="text-sm font-semibold">{category.label}</p>
+              <p className="text-sm font-semibold tracking-tight">
+                {category.label}
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">{count}</p>
             </div>
           ))}
@@ -150,8 +152,15 @@ export function ProfilesPage({ profiles }: ProfilesPageProps) {
             />
           </>
         ) : (
-          <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-            Select a profile to edit, or create a new one.
+          <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center transition-colors hover:border-muted-foreground/25">
+            <div className="space-y-1">
+              <p className="text-2xl text-muted-foreground/20 select-none">
+                ⚙️
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Select a profile to edit, or create a new one.
+              </p>
+            </div>
           </div>
         )}
       </aside>

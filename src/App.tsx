@@ -6,6 +6,7 @@ import { initializeLanguage } from './i18n/language-init'
 import { logger } from './lib/logger'
 import { cleanupOldFiles } from './lib/recovery'
 import { commands } from './lib/tauri-bindings'
+import { migrateLocalStorageIfNeeded } from './services/profile-store'
 import './App.css'
 import { MainWindow } from './components/layout/MainWindow'
 import { ThemeProvider } from './components/ThemeProvider'
@@ -42,6 +43,12 @@ function App() {
     }
 
     initLanguageAndMenu()
+
+    migrateLocalStorageIfNeeded().then(migrated => {
+      if (migrated) {
+        logger.info('Migrated profiles from localStorage to backend')
+      }
+    })
 
     // Clean up old recovery files on startup
     cleanupOldFiles().catch(error => {

@@ -403,7 +403,7 @@ const Field = ({
   label: string
   children: React.ReactNode
 }) => (
-  <label className="block space-y-2 text-sm font-medium">
+  <label className="block space-y-1.5 text-sm font-medium">
     <span>{label}</span>
     {children}
   </label>
@@ -414,8 +414,9 @@ const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
     <select
       {...props}
       className={cn(
-        'border-input dark:bg-input/30 h-9 w-full appearance-none rounded-md border bg-transparent px-3 py-2 pr-9 text-sm shadow-xs transition-[color,box-shadow] outline-none',
+        'border-input dark:bg-input/30 h-9 w-full appearance-none rounded-lg border bg-transparent px-3 py-2 pr-9 text-sm transition-[color,box-shadow] outline-none',
         'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+        'hover:bg-accent/30',
         props.className
       )}
     />

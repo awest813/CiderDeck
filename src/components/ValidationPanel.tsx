@@ -15,10 +15,10 @@ interface ValidationPanelProps {
 }
 
 const severityClass: Record<ValidationSeverity, string> = {
-  error: 'border-destructive/50 bg-destructive/10 text-destructive',
+  error: 'border-destructive/50 bg-destructive/10 text-destructive rounded-xl',
   warning:
-    'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  info: 'border-muted bg-muted/40 text-muted-foreground',
+    'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 rounded-xl',
+  info: 'border-muted bg-muted/40 text-muted-foreground rounded-xl',
 }
 
 const compatibilityHelpers = new Set<string>(COMPATIBILITY_BACKENDS)
@@ -65,13 +65,13 @@ export function ValidationPanel({ profile }: ValidationPanelProps) {
                 ))}
               </ul>
             ) : (
-              <p className="rounded border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-emerald-700 dark:text-emerald-300">
+              <p className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-emerald-700 dark:text-emerald-300">
                 No issues detected. Profile looks ready to launch.
               </p>
             )}
 
             {backendRuntime ? (
-              <div className="flex items-center justify-between rounded border p-3">
+              <div className="flex items-center justify-between rounded-xl border bg-card p-3 shadow-sm">
                 <div>
                   <p className="text-xs font-medium">{backendRuntime.name}</p>
                   {backendRuntime.version ? (

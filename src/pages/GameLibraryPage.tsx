@@ -112,7 +112,7 @@ export function GameLibraryPage() {
       <section className="min-w-0 overflow-auto pr-1">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold">Game Library</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Game Library</h2>
             <p className="mt-1 text-muted-foreground">
               Your games, linked to runtime profiles for one-click launch.
             </p>
@@ -182,10 +182,15 @@ export function GameLibraryPage() {
         </div>
 
         {filteredGames.length === 0 ? (
-          <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed p-8 text-center">
-            <div>
-              <h3 className="text-xl font-semibold">No games yet</h3>
-              <p className="mt-2 text-muted-foreground">
+          <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed bg-muted/30 p-8 text-center transition-colors hover:border-muted-foreground/25">
+            <div className="space-y-2">
+              <p className="text-4xl text-muted-foreground/20 select-none">
+                🎮
+              </p>
+              <h3 className="text-xl font-semibold tracking-tight">
+                No games yet
+              </h3>
+              <p className="text-sm text-muted-foreground">
                 Import your first game to start building your library.
               </p>
             </div>
@@ -205,15 +210,15 @@ export function GameLibraryPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {filteredGames.map(game => (
               <div
                 key={game.id}
                 className={cn(
-                  'flex items-center justify-between rounded-lg border p-3 transition-colors cursor-pointer',
+                  'flex items-center justify-between rounded-lg border p-3 transition-all duration-150 cursor-pointer hover:shadow-sm',
                   game.id === selectedGameId
                     ? 'border-primary bg-primary/5'
-                    : 'hover:border-primary/40'
+                    : 'border-transparent bg-card hover:border-border'
                 )}
                 onClick={() => setSelectedGameId(game.id)}
               >
@@ -253,8 +258,15 @@ export function GameLibraryPage() {
             onDelete={handleDeleteGame}
           />
         ) : (
-          <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-            Select a game to view details and manage profiles.
+          <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center transition-colors hover:border-muted-foreground/25">
+            <div className="space-y-1">
+              <p className="text-2xl text-muted-foreground/20 select-none">
+                🎮
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Select a game to view details and manage profiles.
+              </p>
+            </div>
           </div>
         )}
       </aside>

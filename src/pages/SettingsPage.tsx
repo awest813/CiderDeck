@@ -13,8 +13,8 @@ export function SettingsPage() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h2 className="text-3xl font-bold">Settings</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+        <p className="mt-1 text-muted-foreground">
           Configure CiderDeck launcher paths and future storage options.
         </p>
       </div>
@@ -41,7 +41,7 @@ export function SettingsPage() {
               {runtimes.map(runtime => (
                 <div
                   key={runtime.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="flex items-center justify-between rounded-lg border bg-card p-3 shadow-sm transition-all duration-200 hover:shadow-md"
                 >
                   <div>
                     <p className="font-medium">{runtime.name}</p>

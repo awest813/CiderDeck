@@ -19,19 +19,21 @@ export function Sidebar({
   onPageChange,
 }: SidebarProps) {
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r bg-muted/20 p-4">
+    <aside className="flex w-64 shrink-0 flex-col border-r bg-sidebar p-4">
       <div className="mb-8">
-        <p className="text-xs font-semibold tracking-[0.3em] text-muted-foreground uppercase">
+        <p className="text-xs font-semibold tracking-[0.25em] text-muted-foreground uppercase">
           CiderDeck
         </p>
-        <h1 className="mt-2 text-2xl font-bold">Open Game Workbench</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="mt-3 text-2xl font-bold tracking-tight">
+          Open Game Workbench
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Compatibility layers, source ports, emulators, and recompilation
           projects in one local library.
         </p>
       </div>
 
-      <nav className="flex flex-col gap-2">
+      <nav className="flex flex-col gap-1">
         <Button
           type="button"
           variant={activePage === 'library' ? 'secondary' : 'ghost'}
@@ -42,7 +44,7 @@ export function Sidebar({
           onClick={() => onPageChange('library')}
         >
           Library
-          <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="rounded-full bg-background/80 px-2 py-0.5 text-xs text-muted-foreground">
             {gameCount}
           </span>
         </Button>
@@ -56,7 +58,7 @@ export function Sidebar({
           onClick={() => onPageChange('profiles')}
         >
           Profiles
-          <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="rounded-full bg-background/80 px-2 py-0.5 text-xs text-muted-foreground">
             {profileCount}
           </span>
         </Button>
@@ -73,7 +75,7 @@ export function Sidebar({
         </Button>
       </nav>
 
-      <div className="mt-auto rounded-lg border bg-background p-3 text-xs leading-relaxed text-muted-foreground">
+      <div className="mt-auto rounded-xl border bg-card p-3 text-xs leading-relaxed text-muted-foreground shadow-sm">
         Profiles and games are persisted through the native Rust backend. Native
         launching uses structured commands — no shells, no string concatenation.
         Bring your own legally obtained game data.

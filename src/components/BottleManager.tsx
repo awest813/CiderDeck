@@ -85,7 +85,7 @@ function CreateBottleDialog({ onCreated, onCancel }: CreateDialogProps) {
           <select
             value={runtime}
             onChange={e => setRuntime(e.target.value)}
-            className="border-input h-9 w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+            className="border-input dark:bg-input/30 h-9 w-full appearance-none rounded-lg border bg-transparent px-3 py-2 text-sm transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] hover:bg-accent/30"
           >
             <option value="wine">Wine</option>
             <option value="whisky">Whisky</option>
@@ -198,11 +198,16 @@ export function BottleManager() {
         ) : error ? (
           <p className="text-destructive">{error}</p>
         ) : bottles.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center">
-            <p className="text-muted-foreground">
-              No bottles detected. Create a new bottle or ensure Wine/Whisky/
-              CrossOver is installed with existing bottles.
-            </p>
+          <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center transition-colors hover:border-muted-foreground/25">
+            <div className="space-y-1">
+              <p className="text-2xl text-muted-foreground/20 select-none">
+                🫧
+              </p>
+              <p className="text-sm text-muted-foreground">
+                No bottles detected. Create a new bottle or ensure Wine/Whisky/
+                CrossOver is installed with existing bottles.
+              </p>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -213,7 +218,10 @@ export function BottleManager() {
                 </h3>
                 <div className="space-y-2">
                   {items.map(bottle => (
-                    <div key={bottle.id} className="rounded-lg border p-3">
+                    <div
+                      key={bottle.id}
+                      className="rounded-xl border bg-card p-3 shadow-sm transition-all duration-200 hover:shadow-md"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="font-medium truncate">{bottle.name}</p>
