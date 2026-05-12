@@ -259,6 +259,9 @@ async deleteGame(gameId: string) : Promise<Result<null, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async detectGamesFromBottles() : Promise<DetectedGame[]> {
+    return await TAURI_INVOKE("detect_games_from_bottles");
+},
 async importGame(import_: GameImport) : Promise<Result<Game, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("import_game", { import: import_ }) };
@@ -371,6 +374,10 @@ export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi"
  * A game entry in the library.
  */
 export type Game = { id: string; title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[]; createdAt: string; updatedAt: string }
+/**
+ * A game detected inside a bottle or prefix.
+ */
+export type DetectedGame = { name: string; exe_path: string; bottle_id: string; bottle_name: string; bottle_path: string; publisher: string | null; version: string | null }
 /**
  * Data needed to import a new game into the library.
  */

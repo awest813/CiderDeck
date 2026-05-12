@@ -88,6 +88,7 @@ vi.mock('@/lib/tauri-bindings', () => ({
       status: 'ok',
       data: 0,
     }),
+    detectGamesFromBottles: vi.fn().mockResolvedValue([]),
   },
   unwrapResult: vi.fn((result: { status: string; data?: unknown }) => {
     if (result.status === 'ok') return result.data

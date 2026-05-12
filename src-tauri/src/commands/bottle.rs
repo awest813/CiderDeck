@@ -19,12 +19,21 @@ use std::process::Command;
 /// Health status of a bottle / prefix.
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
 pub enum BottleHealth {
-    /// No issues detected
     Good,
-    /// Minor issues (e.g., missing common components)
     Warning,
-    /// Bottle may be corrupted or missing critical files
     Broken,
+}
+
+/// Info about a game detected inside a bottle / prefix.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct DetectedGame {
+    pub name: String,
+    pub exe_path: String,
+    pub bottle_id: String,
+    pub bottle_name: String,
+    pub bottle_path: String,
+    pub publisher: Option<String>,
+    pub version: Option<String>,
 }
 
 /// Info about a detected or managed bottle / prefix.
@@ -507,6 +516,292 @@ fn scan_gptk_bottles() -> Vec<Bottle> {
     }
 
     bottles
+}
+
+// ============================================================================
+// Game Detection from Bottles
+// ============================================================================
+
+const GAME_SKIP_PREFIXES: &[&str] = &[
+    "unins000",
+    "uninstaller",
+    "uninstall",
+    "revo_uninstaller",
+    "gecko",
+    "mono",
+    "wine",
+    "wineboot",
+    "winecfg",
+    "regedit",
+    "msiexec",
+    "notepad",
+    "cmd",
+    "control",
+    "explorer",
+    "taskmgr",
+    "taskkill",
+    "tasklist",
+    "ipconfig",
+    "ping",
+    "hostname",
+    "winver",
+    "dxdiag",
+    "dxsetup",
+    "vcredist",
+    "dotnetfx",
+    "NDP",
+    "dotnet",
+    "vc_redist",
+    "vcredist",
+    "vcredist_x",
+    "vcredist_x64",
+    "vcredist_x86",
+    "spinstaller",
+    "crashhandler",
+    "upc",
+    "directx",
+    "autoplay",
+    "dplayx",
+    "dpnsvr",
+    "dpwsockx",
+    "dplay",
+    "dplaysvr",
+    "dpmodemx",
+];
+
+fn looks_like_game(name: &str, exe_name: &str) -> bool {
+    let lower = name.to_lowercase();
+    let exe_lower = exe_name.to_lowercase();
+
+    for skip in GAME_SKIP_PREFIXES {
+        if lower.starts_with(skip) || exe_lower.starts_with(skip) {
+            return false;
+        }
+    }
+
+    if lower.contains("cider") || lower.contains("wrapper")
+        || lower.contains("prefix")
+        || lower.contains("system")
+    {
+        return false;
+    }
+
+    true
+}
+
+fn parse_uninstall_reg(path: &Path) -> Vec<(String, String, Option<String>, Option<String>)> {
+    let contents = match fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(_) => return Vec::new(),
+    };
+
+    let mut results = Vec::new();
+    let mut current_key = String::new();
+    let mut display_name: Option<String> = None;
+    let mut uninstall_str: Option<String> = None;
+    let mut publisher: Option<String> = None;
+    let mut version: Option<String> = None;
+
+    for line in contents.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            if !current_key.is_empty() && display_name.is_some() {
+                if let Some(exe) = uninstall_str
+                    .as_ref()
+                    .and_then(|s| extract_exe_path(s))
+                {
+                    let name = display_name.clone().unwrap_or_default();
+                    let exe_name = std::path::Path::new(&exe)
+                        .file_stem()
+                        .map(|s| s.to_string_lossy().to_string())
+                        .unwrap_or_default();
+
+                    if looks_like_game(&name, &exe_name) {
+                        results.push((
+                            name,
+                            exe,
+                            publisher.clone(),
+                            version.clone(),
+                        ));
+                    }
+                }
+            }
+
+            current_key = line.to_string();
+            display_name = None;
+            uninstall_str = None;
+            publisher = None;
+            version = None;
+        } else if line.starts_with("\"DisplayName\"") {
+            display_name = extract_reg_value(line);
+        } else if line.starts_with("\"UninstallString\"")
+            || line.starts_with("\"QuietUninstallString\"")
+        {
+            uninstall_str = extract_reg_value(line);
+        } else if line.starts_with("\"DisplayPublisher\"") {
+            publisher = extract_reg_value(line);
+        } else if line.starts_with("\"DisplayVersion\"") {
+            version = extract_reg_value(line);
+        }
+    }
+
+    if !current_key.is_empty() && display_name.is_some() {
+        if let Some(exe) = uninstall_str
+            .as_ref()
+            .and_then(|s| extract_exe_path(s))
+        {
+            let name = display_name.clone().unwrap_or_default();
+            let exe_name = std::path::Path::new(&exe)
+                .file_stem()
+                .map(|s| s.to_string_lossy().to_string())
+                .unwrap_or_default();
+
+            if looks_like_game(&name, &exe_name) {
+                results.push((name, exe, publisher.clone(), version.clone()));
+            }
+        }
+    }
+
+    results
+}
+
+fn extract_reg_value(line: &str) -> Option<String> {
+    line.splitn(2, '=')
+        .nth(1)?
+        .trim()
+        .trim_matches('"')
+        .trim()
+        .trim_start_matches('"')
+        .trim_end_matches('"')
+        .to_string()
+        .into()
+}
+
+fn extract_exe_path(uninstall_str: &str) -> Option<String> {
+    let cleaned = uninstall_str.trim();
+    if cleaned.ends_with(".exe") {
+        return Some(cleaned.to_string());
+    }
+    let parts: Vec<&str> = cleaned.split_whitespace().collect();
+    for part in parts {
+        if part.to_lowercase().ends_with(".exe") {
+            return Some(part.to_string());
+        }
+    }
+    None
+}
+
+fn scan_program_files(
+    base: &Path,
+    bottle_id: &str,
+    bottle_name: &str,
+    bottle_path: &str,
+    results: &mut Vec<DetectedGame>,
+) {
+    if !base.is_dir() {
+        return;
+    }
+
+    let skip_names: std::collections::HashSet<_> = GAME_SKIP_PREFIXES
+        .iter()
+        .map(|s| s.to_lowercase())
+        .collect();
+
+    if let Ok(entries) = fs::read_dir(base) {
+        for entry in entries.flatten() {
+            let entry_path = entry.path();
+            if entry_path.is_dir() {
+                scan_program_files(&entry_path, bottle_id, bottle_name, bottle_path, results);
+            } else if let Some(ext) = entry_path.extension() {
+                if ext == "exe" {
+                    let exe_name = entry_path
+                        .file_stem()
+                        .map(|s| s.to_string_lossy().to_string())
+                        .unwrap_or_default();
+
+                    if skip_names.contains(&exe_name.to_lowercase()) {
+                        continue;
+                    }
+
+                    if looks_like_game(&exe_name, &exe_name) {
+                        results.push(DetectedGame {
+                            name: exe_name,
+                            exe_path: entry_path.to_string_lossy().to_string(),
+                            bottle_id: bottle_id.to_string(),
+                            bottle_name: bottle_name.to_string(),
+                            bottle_path: bottle_path.to_string(),
+                            publisher: None,
+                            version: None,
+                        });
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn detect_games_in_bottle(bottle: &Bottle) -> Vec<DetectedGame> {
+    let drive_c = Path::new(&bottle.path).join("drive_c");
+    let mut games = Vec::new();
+
+    let uninstall_path = drive_c.join("uninstall.reg");
+    if uninstall_path.exists() {
+        let entries = parse_uninstall_reg(&uninstall_path);
+        for (name, exe_path, publisher, version) in entries {
+            games.push(DetectedGame {
+                name,
+                exe_path,
+                bottle_id: bottle.id.clone(),
+                bottle_name: bottle.name.clone(),
+                bottle_path: bottle.path.clone(),
+                publisher,
+                version,
+            });
+        }
+    }
+
+    let program_files = drive_c.join("Program Files");
+    let program_files_x86 = drive_c.join("Program Files (x86)");
+    scan_program_files(
+        &program_files,
+        &bottle.id,
+        &bottle.name,
+        &bottle.path,
+        &mut games,
+    );
+    scan_program_files(
+        &program_files_x86,
+        &bottle.id,
+        &bottle.name,
+        &bottle.path,
+        &mut games,
+    );
+
+    let mut seen = std::collections::HashSet::new();
+    games.retain(|g| seen.insert(g.exe_path.to_lowercase()));
+    games
+}
+
+/// Detect all installed games from all detected bottles.
+#[tauri::command]
+#[specta::specta]
+pub async fn detect_games_from_bottles() -> Vec<DetectedGame> {
+    log::info!("Starting game detection from bottles");
+
+    let bottles = detect_bottles().await;
+    let mut all_games = Vec::new();
+
+    for bottle in &bottles {
+        let games = detect_games_in_bottle(&bottle);
+        all_games.extend(games);
+    }
+
+    log::info!(
+        "Game detection complete: {} games found across {} bottles",
+        all_games.len(),
+        bottles.len()
+    );
+    all_games
 }
 
 // ============================================================================

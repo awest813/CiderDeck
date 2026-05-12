@@ -26,6 +26,7 @@ export type {
   AppPreferences,
   Bottle,
   BottleHealth,
+  DetectedGame,
   Game,
   GameImport,
   GameImportSource,

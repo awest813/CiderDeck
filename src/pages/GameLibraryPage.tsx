@@ -5,7 +5,12 @@ import { Button } from '@/components/ui/button'
 import { GameCard } from '@/components/GameCard'
 import { GameDetailPanel } from '@/components/GameDetailPanel'
 import { GameImportDialog } from '@/components/GameImportDialog'
+import { DetectedGamesDialog } from '@/components/DetectedGamesDialog'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  useGameDetection,
+  useRefreshDetection,
+} from '@/hooks/use-game-detection'
 import {
   useGameLibrary,
   useSaveGame,
@@ -15,7 +20,12 @@ import {
 import { useProfileStore } from '@/services/profile-store'
 import { launchProfile } from '@/lib/profile-runner'
 import { cn } from '@/lib/utils'
-import type { Game, GameImport } from '@/lib/bindings'
+import type {
+  Game,
+  GameImport,
+  DetectedGame,
+  GameImportSource,
+} from '@/lib/bindings'
 
 type ViewMode = 'grid' | 'list'
 
@@ -25,9 +35,14 @@ export function GameLibraryPage() {
   const [importKey, setImportKey] = useState(0)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [filterTag, setFilterTag] = useState<string | null>(null)
+  const [detectOpen, setDetectOpen] = useState(false)
+  const [detectKey, setDetectKey] = useState(0)
 
   const { data: games = [], isLoading: gamesLoading } = useGameLibrary()
   const { data: profiles = [] } = useProfileStore()
+  const { data: detectedGames = [], isLoading: detectLoading } =
+    useGameDetection(detectOpen)
+  const refreshDetection = useRefreshDetection()
   const saveGame = useSaveGame()
   const deleteGame = useDeleteGame()
   const importGame = useImportGame()
@@ -63,6 +78,24 @@ export function GameLibraryPage() {
     }
   }
 
+  const handleImportDetected = (
+    detected: DetectedGame[],
+    _source: GameImportSource
+  ) => {
+    for (const g of detected) {
+      const gameImport: GameImport = {
+        title: g.name,
+        profileIds: [],
+        tags: [],
+        notes: null,
+        installPath: null,
+        artworkPath: null,
+        importSource: 'ExeMsi',
+      }
+      importGame.mutate(gameImport)
+    }
+  }
+
   const profileCountFor = (game: Game): number =>
     profiles.filter(p => game.profileIds.includes(p.id)).length
 
@@ -84,6 +117,16 @@ export function GameLibraryPage() {
               Your games, linked to runtime profiles for one-click launch.
             </p>
           </div>
+          <Button
+            type="button"
+            onClick={() => {
+              setDetectKey(k => k + 1)
+              setDetectOpen(true)
+            }}
+            variant="secondary"
+          >
+            + Auto-Detect
+          </Button>
           <Button
             type="button"
             onClick={() => {
@@ -221,6 +264,21 @@ export function GameLibraryPage() {
         open={importOpen}
         onOpenChange={setImportOpen}
         onImport={handleImport}
+      />
+
+      <DetectedGamesDialog
+        key={detectKey}
+        open={detectOpen}
+        onOpenChange={setDetectOpen}
+        detectedGames={detectedGames}
+        isLoading={detectLoading}
+        isRefreshing={refreshDetection.isPending}
+        onImport={handleImportDetected}
+        onRefresh={() =>
+          refreshDetection.mutate(undefined, {
+            onSuccess: () => setDetectKey(k => k + 1),
+          })
+        }
       />
     </main>
   )
