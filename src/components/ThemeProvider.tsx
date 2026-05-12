@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useState, useRef } from 'react'
+import {
+  useMemo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useRef,
+} from 'react'
 import { emit } from '@tauri-apps/api/event'
 import { ThemeProviderContext, type Theme } from '@/lib/theme-context'
 import { usePreferences } from '@/services/preferences'
@@ -54,15 +61,22 @@ export function ThemeProvider({
     applyTheme(theme === 'dark')
   }, [theme])
 
-  const value = {
-    theme,
-    setTheme: (newTheme: Theme) => {
+  const handleSetTheme = useCallback(
+    (newTheme: Theme) => {
       localStorage.setItem(storageKey, newTheme)
       setTheme(newTheme)
-      // Notify other windows (e.g., quick pane) of theme change
       emit('theme-changed', { theme: newTheme })
     },
-  }
+    [storageKey]
+  )
+
+  const value = useMemo(
+    () => ({
+      theme,
+      setTheme: handleSetTheme,
+    }),
+    [theme, handleSetTheme]
+  )
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
