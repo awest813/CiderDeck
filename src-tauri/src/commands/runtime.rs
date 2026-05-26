@@ -32,6 +32,22 @@ pub struct RuntimeInfo {
 // Wine Detection
 // ============================================================================
 
+pub(crate) fn detect_wine_pub() -> RuntimeInfo {
+    detect_wine()
+}
+
+pub(crate) fn detect_whisky_pub() -> RuntimeInfo {
+    detect_whisky()
+}
+
+pub(crate) fn detect_crossover_pub() -> RuntimeInfo {
+    detect_crossover()
+}
+
+pub(crate) fn detect_gptk_pub() -> RuntimeInfo {
+    detect_gptk()
+}
+
 fn detect_wine() -> RuntimeInfo {
     log::debug!("Detecting Wine runtime");
 

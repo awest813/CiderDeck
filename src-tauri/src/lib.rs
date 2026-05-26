@@ -6,6 +6,7 @@
 
 mod bindings;
 mod commands;
+mod runtime_provider;
 mod types;
 mod utils;
 

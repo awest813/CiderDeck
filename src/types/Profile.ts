@@ -63,13 +63,14 @@ export const COMPATIBILITY_BACKENDS = [
   'crossover',
   'whisky',
   'gptk',
+  'custom',
 ] as const
 
 export type CompatibilityBackend = (typeof COMPATIBILITY_BACKENDS)[number]
 
 export interface CompatibilityProfile extends BaseProfile {
   category: 'compatibility-layer'
-  helper: 'wine' | 'crossover' | 'whisky' | 'gptk'
+  helper: 'wine' | 'crossover' | 'whisky' | 'gptk' | 'custom'
   backend: CompatibilityBackend
   wineExecutablePath?: string
   executablePath?: string
