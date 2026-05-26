@@ -72,9 +72,14 @@ export interface CompatibilityProfile extends BaseProfile {
   category: 'compatibility-layer'
   helper: 'wine' | 'crossover' | 'whisky' | 'gptk' | 'custom'
   backend: CompatibilityBackend
+  runtimeProviderId?: CompatibilityBackend
   wineExecutablePath?: string
+  winePrefixPath?: string
   executablePath?: string
   bottlePath?: string
+  windowsVersion?: 'win7' | 'win10' | 'win11'
+  renderer?: 'wined3d' | 'dxmt' | 'd3dmetal' | 'moltenvk' | 'auto'
+  dllOverrides?: Record<string, string>
   launchArgs?: string[]
   environmentVariables?: Record<string, string>
 }

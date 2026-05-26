@@ -1,0 +1,10 @@
+{
+  "id": "dx11-dxmt",
+  "name": "DX11 via DXMT",
+  "description": "Prefer DXMT translation for DirectX 11 titles on Apple Silicon.",
+  "runtimeKind": "wine",
+  "env": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "dxmt"
+}

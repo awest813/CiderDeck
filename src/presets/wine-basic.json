@@ -1,0 +1,10 @@
+{
+  "id": "wine-basic",
+  "name": "Wine Basic",
+  "description": "Safe default for simple Windows apps and older games.",
+  "runtimeKind": "wine",
+  "env": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "wined3d"
+}

@@ -70,6 +70,7 @@ export const validateCompatibilityProfile = (
   }
   if (
     (profile.backend === 'wine' || profile.backend === 'whisky') &&
+    !profile.winePrefixPath &&
     !profile.bottlePath
   ) {
     const backendLabel = profile.backend === 'wine' ? 'Wine' : 'Whisky'

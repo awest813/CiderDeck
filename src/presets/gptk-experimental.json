@@ -1,0 +1,10 @@
+{
+  "id": "gptk-experimental",
+  "name": "GPTK Experimental",
+  "description": "Experimental preset for GPTK-based testing with manual tuning.",
+  "runtimeKind": "gptk",
+  "env": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "d3dmetal"
+}
