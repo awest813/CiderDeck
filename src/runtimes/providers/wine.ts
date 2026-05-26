@@ -19,7 +19,7 @@ export class WineRuntimeProvider implements RuntimeProvider {
   readonly name = 'Wine'
   readonly kind = 'wine'
 
-  detect(): RuntimeDetectionResult {
+  async detect(): Promise<RuntimeDetectionResult> {
     return {
       available: false,
       executablePath: COMMON_WINE_PATHS[0],
@@ -27,7 +27,7 @@ export class WineRuntimeProvider implements RuntimeProvider {
     }
   }
 
-  validate(config: RuntimeConfig): RuntimeValidationResult {
+  async validate(config: RuntimeConfig): Promise<RuntimeValidationResult> {
     const errors: string[] = []
     if (!nonEmpty(config.targetExecutable)) {
       errors.push('Target executable is required.')
@@ -35,7 +35,7 @@ export class WineRuntimeProvider implements RuntimeProvider {
     return { valid: errors.length === 0, errors }
   }
 
-  buildLaunchCommand(config: RuntimeConfig): LaunchCommand {
+  async buildLaunchCommand(config: RuntimeConfig): Promise<LaunchCommand> {
     if (!nonEmpty(config.targetExecutable)) {
       throw new Error('Wine: target executable is required.')
     }

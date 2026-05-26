@@ -47,7 +47,7 @@ export interface RuntimeProvider {
   name: string
   kind: RuntimeKind
 
-  detect(): RuntimeDetectionResult
-  validate(config: RuntimeConfig): RuntimeValidationResult
-  buildLaunchCommand(config: RuntimeConfig): LaunchCommand
+  detect(): Promise<RuntimeDetectionResult>
+  validate(config: RuntimeConfig): Promise<RuntimeValidationResult>
+  buildLaunchCommand(config: RuntimeConfig): Promise<LaunchCommand>
 }

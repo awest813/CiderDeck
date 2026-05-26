@@ -19,7 +19,7 @@ export class CrossOverRuntimeProvider implements RuntimeProvider {
   readonly name = 'CrossOver'
   readonly kind = 'crossover'
 
-  detect(): RuntimeDetectionResult {
+  async detect(): Promise<RuntimeDetectionResult> {
     return {
       available: false,
       executablePath: CROSSOVER_DEFAULT_WINE_PATH,
@@ -27,7 +27,7 @@ export class CrossOverRuntimeProvider implements RuntimeProvider {
     }
   }
 
-  validate(config: RuntimeConfig): RuntimeValidationResult {
+  async validate(config: RuntimeConfig): Promise<RuntimeValidationResult> {
     const errors: string[] = []
     if (!nonEmpty(config.targetExecutable)) {
       errors.push('Target executable is required.')
@@ -35,7 +35,7 @@ export class CrossOverRuntimeProvider implements RuntimeProvider {
     return { valid: errors.length === 0, errors }
   }
 
-  buildLaunchCommand(config: RuntimeConfig): LaunchCommand {
+  async buildLaunchCommand(config: RuntimeConfig): Promise<LaunchCommand> {
     if (!nonEmpty(config.targetExecutable)) {
       throw new Error('CrossOver: target executable is required.')
     }

@@ -1,0 +1,19 @@
+{
+  "id": "test-profile-dx11-game",
+  "title": "Smoke Test: DX9/DX11 Sample",
+  "category": "compatibility-layer",
+  "helper": "wine",
+  "backend": "wine",
+  "runtimeProviderId": "wine",
+  "status": "ready",
+  "executablePath": "/Users/you/Games/DX11Sample/Demo.exe",
+  "winePrefixPath": "/Users/you/Games/CiderDeck/Prefixes/smoke-dx11",
+  "launchArgs": [],
+  "environmentVariables": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "dxmt",
+  "windowsVersion": "win10",
+  "createdAt": "2026-05-26T00:00:00.000Z",
+  "updatedAt": "2026-05-26T00:00:00.000Z"
+}

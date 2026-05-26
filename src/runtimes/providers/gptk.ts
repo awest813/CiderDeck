@@ -17,14 +17,14 @@ export class GptkRuntimeProvider implements RuntimeProvider {
   readonly name = 'Apple Game Porting Toolkit'
   readonly kind = 'gptk'
 
-  detect(): RuntimeDetectionResult {
+  async detect(): Promise<RuntimeDetectionResult> {
     return {
       available: false,
       details: 'Runtime probing is handled by native Tauri runtime detection.',
     }
   }
 
-  validate(config: RuntimeConfig): RuntimeValidationResult {
+  async validate(config: RuntimeConfig): Promise<RuntimeValidationResult> {
     const errors: string[] = []
     if (!nonEmpty(config.targetExecutable)) {
       errors.push('Target executable is required.')
@@ -35,7 +35,7 @@ export class GptkRuntimeProvider implements RuntimeProvider {
     return { valid: errors.length === 0, errors }
   }
 
-  buildLaunchCommand(config: RuntimeConfig): LaunchCommand {
+  async buildLaunchCommand(config: RuntimeConfig): Promise<LaunchCommand> {
     if (!nonEmpty(config.targetExecutable)) {
       throw new Error('GPTK: target executable is required.')
     }

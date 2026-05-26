@@ -67,30 +67,32 @@ describe('getRuntimeProvider / RUNTIME_PROVIDERS', () => {
 describe('WineProvider', () => {
   const wine = requireProvider('wine')
 
-  it('defaults program to "wine"', () => {
-    const cmd = wine.buildLaunchCommand(cfg())
+  it('defaults program to "wine"', async () => {
+    const cmd = await wine.buildLaunchCommand(cfg())
     expect(cmd.program).toBe('wine')
   })
 
-  it('respects custom runtimeExecutable', () => {
-    const cmd = wine.buildLaunchCommand(
+  it('respects custom runtimeExecutable', async () => {
+    const cmd = await wine.buildLaunchCommand(
       cfg({ runtimeExecutable: '/opt/homebrew/bin/wine64' })
     )
     expect(cmd.program).toBe('/opt/homebrew/bin/wine64')
   })
 
-  it('sets WINEPREFIX from containerPath', () => {
-    const cmd = wine.buildLaunchCommand(cfg({ containerPath: '/prefix/wine' }))
+  it('sets WINEPREFIX from containerPath', async () => {
+    const cmd = await wine.buildLaunchCommand(
+      cfg({ containerPath: '/prefix/wine' })
+    )
     expect(cmd.env['WINEPREFIX']).toBe('/prefix/wine')
   })
 
-  it('does not set WINEPREFIX when containerPath is absent', () => {
-    const cmd = wine.buildLaunchCommand(cfg())
+  it('does not set WINEPREFIX when containerPath is absent', async () => {
+    const cmd = await wine.buildLaunchCommand(cfg())
     expect(cmd.env['WINEPREFIX']).toBeUndefined()
   })
 
-  it('user env vars take precedence over WINEPREFIX default', () => {
-    const cmd = wine.buildLaunchCommand(
+  it('user env vars take precedence over WINEPREFIX default', async () => {
+    const cmd = await wine.buildLaunchCommand(
       cfg({
         containerPath: '/provider/prefix',
         envVars: { WINEPREFIX: '/user/prefix' },
@@ -99,8 +101,8 @@ describe('WineProvider', () => {
     expect(cmd.env['WINEPREFIX']).toBe('/user/prefix')
   })
 
-  it('args = [targetExecutable, ...launchArgs]', () => {
-    const cmd = wine.buildLaunchCommand(
+  it('args = [targetExecutable, ...launchArgs]', async () => {
+    const cmd = await wine.buildLaunchCommand(
       cfg({ launchArgs: ['-fullscreen', '-nosound'] })
     )
     expect(cmd.args).toEqual([
@@ -110,26 +112,26 @@ describe('WineProvider', () => {
     ])
   })
 
-  it('validate fails when targetExecutable is missing', () => {
-    const result = wine.validate({ targetExecutable: undefined })
+  it('validate fails when targetExecutable is missing', async () => {
+    const result = await wine.validate({ targetExecutable: undefined })
     expect(result.valid).toBe(false)
     expect(result.errors).not.toHaveLength(0)
   })
 
-  it('validate passes when targetExecutable is set', () => {
-    const result = wine.validate(cfg())
+  it('validate passes when targetExecutable is set', async () => {
+    const result = await wine.validate(cfg())
     expect(result.valid).toBe(true)
     expect(result.errors).toHaveLength(0)
   })
 
-  it('buildLaunchCommand throws when targetExecutable is missing', () => {
-    expect(() =>
+  it('buildLaunchCommand throws when targetExecutable is missing', async () => {
+    await expect(
       wine.buildLaunchCommand({ targetExecutable: undefined })
-    ).toThrow()
+    ).rejects.toThrow()
   })
 
-  it('sets default WINEDEBUG for quieter logs', () => {
-    const cmd = wine.buildLaunchCommand(cfg())
+  it('sets default WINEDEBUG for quieter logs', async () => {
+    const cmd = await wine.buildLaunchCommand(cfg())
     expect(cmd.env['WINEDEBUG']).toBe('-all')
   })
 })
@@ -141,13 +143,15 @@ describe('WineProvider', () => {
 describe('CrossOverProvider', () => {
   const crossover = requireProvider('crossover')
 
-  it('defaults program to CrossOver wine path', () => {
-    const cmd = crossover.buildLaunchCommand(cfg())
+  it('defaults program to CrossOver wine path', async () => {
+    const cmd = await crossover.buildLaunchCommand(cfg())
     expect(cmd.program).toBe(CROSSOVER_DEFAULT_WINE_PATH)
   })
 
-  it('inserts --bottle <name> -- <exe> when bottle is set', () => {
-    const cmd = crossover.buildLaunchCommand(cfg({ containerPath: 'Steam' }))
+  it('inserts --bottle <name> -- <exe> when bottle is set', async () => {
+    const cmd = await crossover.buildLaunchCommand(
+      cfg({ containerPath: 'Steam' })
+    )
     expect(cmd.args).toEqual([
       '--bottle',
       'Steam',
@@ -156,13 +160,13 @@ describe('CrossOverProvider', () => {
     ])
   })
 
-  it('omits --bottle flag when containerPath is absent', () => {
-    const cmd = crossover.buildLaunchCommand(cfg())
+  it('omits --bottle flag when containerPath is absent', async () => {
+    const cmd = await crossover.buildLaunchCommand(cfg())
     expect(cmd.args).toEqual(['--', '/Games/Test/Game.exe'])
   })
 
-  it('appends launchArgs after target', () => {
-    const cmd = crossover.buildLaunchCommand(
+  it('appends launchArgs after target', async () => {
+    const cmd = await crossover.buildLaunchCommand(
       cfg({ containerPath: 'My Bottle', launchArgs: ['-dx11'] })
     )
     expect(cmd.args).toEqual([
@@ -174,19 +178,19 @@ describe('CrossOverProvider', () => {
     ])
   })
 
-  it('does not set WINEPREFIX', () => {
-    const cmd = crossover.buildLaunchCommand(
+  it('does not set WINEPREFIX', async () => {
+    const cmd = await crossover.buildLaunchCommand(
       cfg({ containerPath: 'SomeBottle' })
     )
     expect(cmd.env['WINEPREFIX']).toBeUndefined()
   })
 
-  it('validate fails when targetExecutable is missing', () => {
-    expect(crossover.validate({}).valid).toBe(false)
+  it('validate fails when targetExecutable is missing', async () => {
+    expect((await crossover.validate({})).valid).toBe(false)
   })
 
-  it('respects custom runtimeExecutable', () => {
-    const cmd = crossover.buildLaunchCommand(
+  it('respects custom runtimeExecutable', async () => {
+    const cmd = await crossover.buildLaunchCommand(
       cfg({ runtimeExecutable: '/custom/wine' })
     )
     expect(cmd.program).toBe('/custom/wine')
@@ -200,13 +204,13 @@ describe('CrossOverProvider', () => {
 describe('WhiskyProvider', () => {
   const whisky = requireProvider('whisky')
 
-  it('defaults program to Whisky wine64 path', () => {
-    const cmd = whisky.buildLaunchCommand(cfg())
+  it('defaults program to Whisky wine64 path', async () => {
+    const cmd = await whisky.buildLaunchCommand(cfg())
     expect(cmd.program).toBe(WHISKY_DEFAULT_WINE_PATH)
   })
 
-  it('sets WINEPREFIX from containerPath', () => {
-    const cmd = whisky.buildLaunchCommand(
+  it('sets WINEPREFIX from containerPath', async () => {
+    const cmd = await whisky.buildLaunchCommand(
       cfg({
         containerPath: '/Users/me/Library/Containers/Whisky/Bottles/Test',
       })
@@ -217,15 +221,15 @@ describe('WhiskyProvider', () => {
     expect(cmd.args).toEqual(['/Games/Test/Game.exe'])
   })
 
-  it('respects custom runtimeExecutable', () => {
-    const cmd = whisky.buildLaunchCommand(
+  it('respects custom runtimeExecutable', async () => {
+    const cmd = await whisky.buildLaunchCommand(
       cfg({ runtimeExecutable: '/custom/wine64' })
     )
     expect(cmd.program).toBe('/custom/wine64')
   })
 
-  it('user WINEPREFIX wins over containerPath', () => {
-    const cmd = whisky.buildLaunchCommand(
+  it('user WINEPREFIX wins over containerPath', async () => {
+    const cmd = await whisky.buildLaunchCommand(
       cfg({
         containerPath: '/provider/prefix',
         envVars: { WINEPREFIX: '/user/prefix' },
@@ -242,41 +246,45 @@ describe('WhiskyProvider', () => {
 describe('GptkProvider', () => {
   const gptk = requireProvider('gptk')
 
-  it('defaults program to "gameportingtoolkit"', () => {
-    const cmd = gptk.buildLaunchCommand(cfg({ containerPath: '/prefix/gptk' }))
+  it('defaults program to "gameportingtoolkit"', async () => {
+    const cmd = await gptk.buildLaunchCommand(
+      cfg({ containerPath: '/prefix/gptk' })
+    )
     expect(cmd.program).toBe('gameportingtoolkit')
   })
 
-  it('args = [containerPath, targetExecutable, ...launchArgs]', () => {
-    const cmd = gptk.buildLaunchCommand(cfg({ containerPath: '/prefix/gptk' }))
+  it('args = [containerPath, targetExecutable, ...launchArgs]', async () => {
+    const cmd = await gptk.buildLaunchCommand(
+      cfg({ containerPath: '/prefix/gptk' })
+    )
     expect(cmd.args).toEqual(['/prefix/gptk', '/Games/Test/Game.exe'])
   })
 
-  it('omits container from args when not set', () => {
-    const cmd = gptk.buildLaunchCommand(cfg())
+  it('omits container from args when not set', async () => {
+    const cmd = await gptk.buildLaunchCommand(cfg())
     expect(cmd.args).toEqual(['/Games/Test/Game.exe'])
   })
 
-  it('validate fails when containerPath is missing', () => {
-    const result = gptk.validate(cfg())
+  it('validate fails when containerPath is missing', async () => {
+    const result = await gptk.validate(cfg())
     expect(result.valid).toBe(false)
     expect(result.errors.some(e => e.toLowerCase().includes('container'))).toBe(
       true
     )
   })
 
-  it('validate fails when targetExecutable is missing', () => {
-    const result = gptk.validate({ containerPath: '/prefix/gptk' })
+  it('validate fails when targetExecutable is missing', async () => {
+    const result = await gptk.validate({ containerPath: '/prefix/gptk' })
     expect(result.valid).toBe(false)
   })
 
-  it('validate passes when both paths are set', () => {
-    const result = gptk.validate(cfg({ containerPath: '/prefix/gptk' }))
+  it('validate passes when both paths are set', async () => {
+    const result = await gptk.validate(cfg({ containerPath: '/prefix/gptk' }))
     expect(result.valid).toBe(true)
   })
 
-  it('appends launchArgs after target', () => {
-    const cmd = gptk.buildLaunchCommand(
+  it('appends launchArgs after target', async () => {
+    const cmd = await gptk.buildLaunchCommand(
       cfg({ containerPath: '/prefix/gptk', launchArgs: ['-dx12'] })
     )
     expect(cmd.args).toEqual(['/prefix/gptk', '/Games/Test/Game.exe', '-dx12'])
@@ -290,46 +298,46 @@ describe('GptkProvider', () => {
 describe('CustomProvider', () => {
   const custom = requireProvider('custom')
 
-  it('uses runtimeExecutable as program', () => {
-    const cmd = custom.buildLaunchCommand(
+  it('uses runtimeExecutable as program', async () => {
+    const cmd = await custom.buildLaunchCommand(
       cfg({ runtimeExecutable: '/opt/my-wine/bin/wine' })
     )
     expect(cmd.program).toBe('/opt/my-wine/bin/wine')
     expect(cmd.args).toEqual(['/Games/Test/Game.exe'])
   })
 
-  it('validate fails when runtimeExecutable is missing', () => {
-    const result = custom.validate(cfg())
+  it('validate fails when runtimeExecutable is missing', async () => {
+    const result = await custom.validate(cfg())
     expect(result.valid).toBe(false)
     expect(result.errors.some(e => e.includes('Runtime executable'))).toBe(true)
   })
 
-  it('validate fails when targetExecutable is missing', () => {
-    const result = custom.validate({
+  it('validate fails when targetExecutable is missing', async () => {
+    const result = await custom.validate({
       runtimeExecutable: '/opt/wine/bin/wine',
     })
     expect(result.valid).toBe(false)
   })
 
-  it('validate passes when both executables are set', () => {
-    const result = custom.validate(
+  it('validate passes when both executables are set', async () => {
+    const result = await custom.validate(
       cfg({ runtimeExecutable: '/opt/wine/bin/wine' })
     )
     expect(result.valid).toBe(true)
   })
 
-  it('buildLaunchCommand throws when runtimeExecutable is missing', () => {
-    expect(() => custom.buildLaunchCommand(cfg())).toThrow()
+  it('buildLaunchCommand throws when runtimeExecutable is missing', async () => {
+    await expect(custom.buildLaunchCommand(cfg())).rejects.toThrow()
   })
 
-  it('buildLaunchCommand throws when targetExecutable is missing', () => {
-    expect(() =>
+  it('buildLaunchCommand throws when targetExecutable is missing', async () => {
+    await expect(
       custom.buildLaunchCommand({ runtimeExecutable: '/opt/wine/bin/wine' })
-    ).toThrow()
+    ).rejects.toThrow()
   })
 
-  it('includes launchArgs', () => {
-    const cmd = custom.buildLaunchCommand(
+  it('includes launchArgs', async () => {
+    const cmd = await custom.buildLaunchCommand(
       cfg({
         runtimeExecutable: '/opt/wine/bin/wine',
         launchArgs: ['-nosound'],
@@ -338,8 +346,8 @@ describe('CustomProvider', () => {
     expect(cmd.args).toEqual(['/Games/Test/Game.exe', '-nosound'])
   })
 
-  it('passes through envVars', () => {
-    const cmd = custom.buildLaunchCommand(
+  it('passes through envVars', async () => {
+    const cmd = await custom.buildLaunchCommand(
       cfg({
         runtimeExecutable: '/opt/wine/bin/wine',
         envVars: { MY_VAR: 'value' },

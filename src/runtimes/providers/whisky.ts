@@ -19,7 +19,7 @@ export class WhiskyRuntimeProvider implements RuntimeProvider {
   readonly name = 'Whisky'
   readonly kind = 'whisky'
 
-  detect(): RuntimeDetectionResult {
+  async detect(): Promise<RuntimeDetectionResult> {
     return {
       available: false,
       executablePath: WHISKY_DEFAULT_WINE_PATH,
@@ -27,7 +27,7 @@ export class WhiskyRuntimeProvider implements RuntimeProvider {
     }
   }
 
-  validate(config: RuntimeConfig): RuntimeValidationResult {
+  async validate(config: RuntimeConfig): Promise<RuntimeValidationResult> {
     const errors: string[] = []
     if (!nonEmpty(config.targetExecutable)) {
       errors.push('Target executable is required.')
@@ -35,7 +35,7 @@ export class WhiskyRuntimeProvider implements RuntimeProvider {
     return { valid: errors.length === 0, errors }
   }
 
-  buildLaunchCommand(config: RuntimeConfig): LaunchCommand {
+  async buildLaunchCommand(config: RuntimeConfig): Promise<LaunchCommand> {
     if (!nonEmpty(config.targetExecutable)) {
       throw new Error('Whisky: target executable is required.')
     }
