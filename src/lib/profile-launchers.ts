@@ -41,9 +41,9 @@ const cleanEnv = (
 
 export class LaunchRequestError extends Error {}
 
-export function buildCompatibilityLaunchRequest(
+export async function buildCompatibilityLaunchRequest(
   profile: CompatibilityProfile
-): LaunchRequest {
+): Promise<LaunchRequest> {
   if (!profile.executablePath) {
     throw new LaunchRequestError('Executable path is required.')
   }
@@ -71,7 +71,7 @@ export function buildCompatibilityLaunchRequest(
       .join(';')
   }
 
-  const cmd = provider.buildLaunchCommand({
+  const cmd = await provider.buildLaunchCommand({
     targetExecutable: profile.executablePath,
     containerPath: profile.winePrefixPath ?? profile.bottlePath,
     runtimeExecutable: profile.wineExecutablePath,
@@ -364,7 +364,9 @@ export function buildN64RecompLaunchRequest(
   }
 }
 
-export function buildLaunchRequest(profile: CiderDeckProfile): LaunchRequest {
+export async function buildLaunchRequest(
+  profile: CiderDeckProfile
+): Promise<LaunchRequest> {
   switch (profile.helper) {
     case 'wine':
     case 'crossover':

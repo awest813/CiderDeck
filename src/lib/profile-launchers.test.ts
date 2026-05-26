@@ -22,8 +22,8 @@ const baseProfile = (
 }
 
 describe('buildCompatibilityLaunchRequest', () => {
-  it('builds Wine requests with WINEPREFIX from bottlePath', () => {
-    const request = buildCompatibilityLaunchRequest(
+  it('builds Wine requests with WINEPREFIX from bottlePath', async () => {
+    const request = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'wine',
         helper: 'wine',
@@ -38,8 +38,8 @@ describe('buildCompatibilityLaunchRequest', () => {
     })
   })
 
-  it('builds CrossOver requests with the bottle argument', () => {
-    const request = buildCompatibilityLaunchRequest(
+  it('builds CrossOver requests with the bottle argument', async () => {
+    const request = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'crossover',
         helper: 'crossover',
@@ -55,8 +55,8 @@ describe('buildCompatibilityLaunchRequest', () => {
     })
   })
 
-  it('builds Whisky requests with bundled wine64 and WINEPREFIX', () => {
-    const request = buildCompatibilityLaunchRequest(
+  it('builds Whisky requests with bundled wine64 and WINEPREFIX', async () => {
+    const request = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'whisky',
         helper: 'whisky',
@@ -73,8 +73,8 @@ describe('buildCompatibilityLaunchRequest', () => {
     })
   })
 
-  it('builds GPTK requests with bottlePath as a positional argument', () => {
-    const request = buildCompatibilityLaunchRequest(
+  it('builds GPTK requests with bottlePath as a positional argument', async () => {
+    const request = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'gptk',
         helper: 'gptk',
@@ -89,15 +89,15 @@ describe('buildCompatibilityLaunchRequest', () => {
     })
   })
 
-  it('uses custom wineExecutablePath for Wine and Whisky', () => {
-    const wineRequest = buildCompatibilityLaunchRequest(
+  it('uses custom wineExecutablePath for Wine and Whisky', async () => {
+    const wineRequest = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'wine',
         helper: 'wine',
         wineExecutablePath: '/opt/homebrew/bin/wine64',
       })
     )
-    const whiskyRequest = buildCompatibilityLaunchRequest(
+    const whiskyRequest = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'whisky',
         helper: 'whisky',
@@ -111,8 +111,8 @@ describe('buildCompatibilityLaunchRequest', () => {
     )
   })
 
-  it('supports runtimeProviderId and winePrefixPath fields', () => {
-    const request = buildCompatibilityLaunchRequest(
+  it('supports runtimeProviderId and winePrefixPath fields', async () => {
+    const request = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'wine',
         helper: 'wine',
@@ -127,8 +127,8 @@ describe('buildCompatibilityLaunchRequest', () => {
     })
   })
 
-  it('maps windows/renderer/dll overrides into launch environment', () => {
-    const request = buildCompatibilityLaunchRequest(
+  it('maps windows/renderer/dll overrides into launch environment', async () => {
+    const request = await buildCompatibilityLaunchRequest(
       baseProfile({
         backend: 'wine',
         helper: 'wine',

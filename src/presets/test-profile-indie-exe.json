@@ -1,0 +1,18 @@
+{
+  "id": "test-profile-indie-exe",
+  "title": "Smoke Test: Simple Indie EXE",
+  "category": "compatibility-layer",
+  "helper": "wine",
+  "backend": "wine",
+  "runtimeProviderId": "wine",
+  "status": "ready",
+  "executablePath": "/Users/you/Games/IndieSample/Game.exe",
+  "winePrefixPath": "/Users/you/Games/CiderDeck/Prefixes/smoke-indie",
+  "launchArgs": [],
+  "environmentVariables": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "wined3d",
+  "createdAt": "2026-05-26T00:00:00.000Z",
+  "updatedAt": "2026-05-26T00:00:00.000Z"
+}

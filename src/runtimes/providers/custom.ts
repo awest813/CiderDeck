@@ -16,14 +16,14 @@ export class CustomRuntimeProvider implements RuntimeProvider {
   readonly name = 'Custom Runtime'
   readonly kind = 'custom'
 
-  detect(): RuntimeDetectionResult {
+  async detect(): Promise<RuntimeDetectionResult> {
     return {
       available: true,
       details: 'Custom runtime is always available after user configuration.',
     }
   }
 
-  validate(config: RuntimeConfig): RuntimeValidationResult {
+  async validate(config: RuntimeConfig): Promise<RuntimeValidationResult> {
     const errors: string[] = []
     if (!nonEmpty(config.runtimeExecutable)) {
       errors.push('Runtime executable path is required for a custom provider.')
@@ -34,7 +34,7 @@ export class CustomRuntimeProvider implements RuntimeProvider {
     return { valid: errors.length === 0, errors }
   }
 
-  buildLaunchCommand(config: RuntimeConfig): LaunchCommand {
+  async buildLaunchCommand(config: RuntimeConfig): Promise<LaunchCommand> {
     if (!nonEmpty(config.runtimeExecutable)) {
       throw new Error('Custom: runtime executable path is required.')
     }

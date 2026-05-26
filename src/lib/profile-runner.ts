@@ -46,7 +46,7 @@ export const launchProfile = async (
 ): Promise<ProfileLogEntry> => {
   let request: LaunchRequest
   try {
-    request = buildLaunchRequest(profile)
+    request = await buildLaunchRequest(profile)
   } catch (error) {
     return buildLogEntry(profile, '(launch request not built)', {
       stdout: '',

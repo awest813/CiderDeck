@@ -1,0 +1,18 @@
+{
+  "id": "test-profile-notepad-winecfg",
+  "title": "Smoke Test: Notepad / Winecfg",
+  "category": "compatibility-layer",
+  "helper": "wine",
+  "backend": "wine",
+  "runtimeProviderId": "wine",
+  "status": "ready",
+  "executablePath": "winecfg",
+  "winePrefixPath": "/Users/you/Games/CiderDeck/Prefixes/smoke-notepad",
+  "launchArgs": [],
+  "environmentVariables": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "wined3d",
+  "createdAt": "2026-05-26T00:00:00.000Z",
+  "updatedAt": "2026-05-26T00:00:00.000Z"
+}
