@@ -21,7 +21,7 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Compatibility Runtimes</CardTitle>
+          <CardTitle>Detected Runtimes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {!isTauri() ? (

@@ -71,6 +71,9 @@ interface FormState {
   wineExecutablePath: string
   executablePath: string
   bottlePath: string
+  windowsVersion: '' | 'win7' | 'win10' | 'win11'
+  renderer: '' | 'wined3d' | 'dxmt' | 'd3dmetal' | 'moltenvk' | 'auto'
+  dllOverrides: string
   gameDataPath: string
   configPath: string
   savePath: string
@@ -148,6 +151,9 @@ const emptyState = (): FormState => ({
   wineExecutablePath: '',
   executablePath: '',
   bottlePath: '',
+  windowsVersion: '',
+  renderer: '',
+  dllOverrides: '',
   gameDataPath: '',
   configPath: '',
   savePath: '',
@@ -234,7 +240,10 @@ const stateFromProfile = (profile: CiderDeckProfile): FormState => {
       base.backend = p.backend
       base.wineExecutablePath = p.wineExecutablePath ?? ''
       base.executablePath = p.executablePath ?? ''
-      base.bottlePath = p.bottlePath ?? ''
+      base.bottlePath = p.winePrefixPath ?? p.bottlePath ?? ''
+      base.windowsVersion = p.windowsVersion ?? ''
+      base.renderer = p.renderer ?? ''
+      base.dllOverrides = stringifyEnv(p.dllOverrides)
       base.launchArgs = joinArgs(p.launchArgs)
       base.envVars = stringifyEnv(p.environmentVariables)
       break
@@ -463,9 +472,14 @@ const buildProfile = (
         category: 'compatibility-layer',
         helper,
         backend: state.backend,
+        runtimeProviderId: state.backend,
         wineExecutablePath: state.wineExecutablePath.trim() || undefined,
         executablePath: state.executablePath.trim() || undefined,
         bottlePath: state.bottlePath.trim() || undefined,
+        winePrefixPath: state.bottlePath.trim() || undefined,
+        windowsVersion: state.windowsVersion || undefined,
+        renderer: state.renderer || undefined,
+        dllOverrides: parseEnvText(state.dllOverrides),
         environmentVariables: parseEnvText(state.envVars),
         ...launchArgsField,
       } as CompatibilityProfile
@@ -755,6 +769,43 @@ export function ProfileForm({
               <Textarea
                 value={state.envVars}
                 onChange={e => update('envVars', e.target.value)}
+              />
+            </Field>
+            <Field label="Windows version">
+              <Select
+                value={state.windowsVersion}
+                onChange={e =>
+                  update(
+                    'windowsVersion',
+                    e.target.value as FormState['windowsVersion']
+                  )
+                }
+              >
+                <option value="">Auto</option>
+                <option value="win7">Windows 7</option>
+                <option value="win10">Windows 10</option>
+                <option value="win11">Windows 11</option>
+              </Select>
+            </Field>
+            <Field label="Renderer">
+              <Select
+                value={state.renderer}
+                onChange={e =>
+                  update('renderer', e.target.value as FormState['renderer'])
+                }
+              >
+                <option value="">Auto</option>
+                <option value="wined3d">wined3d</option>
+                <option value="dxmt">dxmt</option>
+                <option value="d3dmetal">d3dmetal</option>
+                <option value="moltenvk">moltenvk</option>
+                <option value="auto">auto</option>
+              </Select>
+            </Field>
+            <Field label="DLL overrides (DLL=mode per line)">
+              <Textarea
+                value={state.dllOverrides}
+                onChange={e => update('dllOverrides', e.target.value)}
               />
             </Field>
           </>

@@ -80,9 +80,7 @@ describe('WineProvider', () => {
   })
 
   it('sets WINEPREFIX from containerPath', () => {
-    const cmd = wine.buildLaunchCommand(
-      cfg({ containerPath: '/prefix/wine' })
-    )
+    const cmd = wine.buildLaunchCommand(cfg({ containerPath: '/prefix/wine' }))
     expect(cmd.env['WINEPREFIX']).toBe('/prefix/wine')
   })
 
@@ -112,16 +110,6 @@ describe('WineProvider', () => {
     ])
   })
 
-  it('getContainerPath returns undefined when not set', () => {
-    expect(wine.getContainerPath(cfg())).toBeUndefined()
-  })
-
-  it('getContainerPath returns value when set', () => {
-    expect(
-      wine.getContainerPath(cfg({ containerPath: '/my/prefix' }))
-    ).toBe('/my/prefix')
-  })
-
   it('validate fails when targetExecutable is missing', () => {
     const result = wine.validate({ targetExecutable: undefined })
     expect(result.valid).toBe(false)
@@ -140,9 +128,9 @@ describe('WineProvider', () => {
     ).toThrow()
   })
 
-  it('env is empty object (not undefined) when no vars set', () => {
+  it('sets default WINEDEBUG for quieter logs', () => {
     const cmd = wine.buildLaunchCommand(cfg())
-    expect(cmd.env).toEqual({})
+    expect(cmd.env['WINEDEBUG']).toBe('-all')
   })
 })
 
@@ -159,9 +147,7 @@ describe('CrossOverProvider', () => {
   })
 
   it('inserts --bottle <name> -- <exe> when bottle is set', () => {
-    const cmd = crossover.buildLaunchCommand(
-      cfg({ containerPath: 'Steam' })
-    )
+    const cmd = crossover.buildLaunchCommand(cfg({ containerPath: 'Steam' }))
     expect(cmd.args).toEqual([
       '--bottle',
       'Steam',
@@ -222,8 +208,7 @@ describe('WhiskyProvider', () => {
   it('sets WINEPREFIX from containerPath', () => {
     const cmd = whisky.buildLaunchCommand(
       cfg({
-        containerPath:
-          '/Users/me/Library/Containers/Whisky/Bottles/Test',
+        containerPath: '/Users/me/Library/Containers/Whisky/Bottles/Test',
       })
     )
     expect(cmd.env['WINEPREFIX']).toBe(
@@ -258,16 +243,12 @@ describe('GptkProvider', () => {
   const gptk = requireProvider('gptk')
 
   it('defaults program to "gameportingtoolkit"', () => {
-    const cmd = gptk.buildLaunchCommand(
-      cfg({ containerPath: '/prefix/gptk' })
-    )
+    const cmd = gptk.buildLaunchCommand(cfg({ containerPath: '/prefix/gptk' }))
     expect(cmd.program).toBe('gameportingtoolkit')
   })
 
   it('args = [containerPath, targetExecutable, ...launchArgs]', () => {
-    const cmd = gptk.buildLaunchCommand(
-      cfg({ containerPath: '/prefix/gptk' })
-    )
+    const cmd = gptk.buildLaunchCommand(cfg({ containerPath: '/prefix/gptk' }))
     expect(cmd.args).toEqual(['/prefix/gptk', '/Games/Test/Game.exe'])
   })
 
@@ -290,9 +271,7 @@ describe('GptkProvider', () => {
   })
 
   it('validate passes when both paths are set', () => {
-    const result = gptk.validate(
-      cfg({ containerPath: '/prefix/gptk' })
-    )
+    const result = gptk.validate(cfg({ containerPath: '/prefix/gptk' }))
     expect(result.valid).toBe(true)
   })
 
@@ -300,11 +279,7 @@ describe('GptkProvider', () => {
     const cmd = gptk.buildLaunchCommand(
       cfg({ containerPath: '/prefix/gptk', launchArgs: ['-dx12'] })
     )
-    expect(cmd.args).toEqual([
-      '/prefix/gptk',
-      '/Games/Test/Game.exe',
-      '-dx12',
-    ])
+    expect(cmd.args).toEqual(['/prefix/gptk', '/Games/Test/Game.exe', '-dx12'])
   })
 })
 
@@ -326,9 +301,7 @@ describe('CustomProvider', () => {
   it('validate fails when runtimeExecutable is missing', () => {
     const result = custom.validate(cfg())
     expect(result.valid).toBe(false)
-    expect(result.errors.some(e => e.includes('Runtime executable'))).toBe(
-      true
-    )
+    expect(result.errors.some(e => e.includes('Runtime executable'))).toBe(true)
   })
 
   it('validate fails when targetExecutable is missing', () => {

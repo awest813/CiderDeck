@@ -48,29 +48,44 @@ export function buildCompatibilityLaunchRequest(
     throw new LaunchRequestError('Executable path is required.')
   }
 
-  const provider = getRuntimeProvider(profile.backend)
+  const providerId = profile.runtimeProviderId ?? profile.backend
+  const provider = getRuntimeProvider(providerId)
   if (!provider) {
     throw new LaunchRequestError(
-      `No runtime provider found for backend "${profile.backend}".`
+      `No runtime provider found for backend "${providerId}".`
     )
+  }
+
+  const envVars: Record<string, string> = {
+    ...(profile.environmentVariables ?? {}),
+  }
+  if (profile.windowsVersion) {
+    envVars['CIDERDECK_WINDOWS_VERSION'] = profile.windowsVersion
+  }
+  if (profile.renderer) {
+    envVars['CIDERDECK_RENDERER'] = profile.renderer
+  }
+  if (profile.dllOverrides && Object.keys(profile.dllOverrides).length > 0) {
+    envVars['WINEDLLOVERRIDES'] = Object.entries(profile.dllOverrides)
+      .map(([dll, mode]) => `${dll}=${mode}`)
+      .join(';')
   }
 
   const cmd = provider.buildLaunchCommand({
     targetExecutable: profile.executablePath,
-    containerPath: profile.bottlePath,
+    containerPath: profile.winePrefixPath ?? profile.bottlePath,
     runtimeExecutable: profile.wineExecutablePath,
-    envVars: profile.environmentVariables,
+    envVars,
     launchArgs: profile.launchArgs,
   })
 
   // Convert LaunchCommand → LaunchRequest (empty env → undefined)
-  const envVars =
-    Object.keys(cmd.env).length > 0 ? cmd.env : undefined
+  const requestEnvVars = Object.keys(cmd.env).length > 0 ? cmd.env : undefined
 
   return {
     executablePath: cmd.program,
     args: cmd.args,
-    envVars,
+    envVars: requestEnvVars,
   }
 }
 

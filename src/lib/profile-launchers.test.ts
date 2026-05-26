@@ -34,7 +34,7 @@ describe('buildCompatibilityLaunchRequest', () => {
     expect(request).toEqual({
       executablePath: 'wine',
       args: ['/Games/Test/Game.exe'],
-      envVars: { WINEPREFIX: '/prefix/wine' },
+      envVars: { WINEDEBUG: '-all', WINEPREFIX: '/prefix/wine' },
     })
   })
 
@@ -109,5 +109,42 @@ describe('buildCompatibilityLaunchRequest', () => {
     expect(whiskyRequest.executablePath).toBe(
       '/Applications/Whisky.app/bin/custom-wine64'
     )
+  })
+
+  it('supports runtimeProviderId and winePrefixPath fields', () => {
+    const request = buildCompatibilityLaunchRequest(
+      baseProfile({
+        backend: 'wine',
+        helper: 'wine',
+        runtimeProviderId: 'wine',
+        bottlePath: undefined,
+        winePrefixPath: '/prefix/from-runtime-profile',
+      })
+    )
+
+    expect(request.envVars).toMatchObject({
+      WINEPREFIX: '/prefix/from-runtime-profile',
+    })
+  })
+
+  it('maps windows/renderer/dll overrides into launch environment', () => {
+    const request = buildCompatibilityLaunchRequest(
+      baseProfile({
+        backend: 'wine',
+        helper: 'wine',
+        windowsVersion: 'win10',
+        renderer: 'dxmt',
+        dllOverrides: {
+          d3d11: 'native,builtin',
+          dxgi: 'native,builtin',
+        },
+      })
+    )
+
+    expect(request.envVars).toMatchObject({
+      CIDERDECK_WINDOWS_VERSION: 'win10',
+      CIDERDECK_RENDERER: 'dxmt',
+      WINEDLLOVERRIDES: 'd3d11=native,builtin;dxgi=native,builtin',
+    })
   })
 })
