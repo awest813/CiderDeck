@@ -2,7 +2,8 @@ use tauri_specta::{collect_commands, Builder};
 
 pub fn generate_bindings() -> Builder<tauri::Wry> {
     use crate::commands::{
-        bottle, game, launcher, notifications, preferences, profile, quick_pane, recovery, runtime,
+        bottle, game, launcher, notifications, preferences, profile, provider, quick_pane, recovery,
+        runtime,
     };
 
     Builder::<tauri::Wry>::new().commands(collect_commands![
@@ -23,6 +24,8 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         launcher::save_log,
         launcher::read_logs,
         runtime::detect_runtimes,
+        provider::build_runtime_launch_command,
+        provider::validate_runtime_config,
         bottle::detect_bottles,
         bottle::get_bottle_meta,
         bottle::create_bottle,

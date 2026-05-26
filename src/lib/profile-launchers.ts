@@ -16,6 +16,7 @@ import type {
   OpenXcomProfile,
   QuakeProfile,
 } from '@/types/Profile'
+import { getRuntimeProvider } from '@/lib/runtime-providers'
 
 export const DEFAULT_WINE_PROGRAM = 'wine'
 export const DEFAULT_WHISKY_WINE_PATH =
@@ -47,50 +48,29 @@ export function buildCompatibilityLaunchRequest(
     throw new LaunchRequestError('Executable path is required.')
   }
 
-  const env: Record<string, string> = {
-    ...(profile.environmentVariables ?? {}),
-  }
-  let program: string
-  const args: string[] = []
-
-  switch (profile.backend) {
-    case 'wine':
-      program = profile.wineExecutablePath || DEFAULT_WINE_PROGRAM
-      if (profile.bottlePath) {
-        env.WINEPREFIX = profile.bottlePath
-      }
-      args.push(profile.executablePath)
-      break
-    case 'crossover':
-      program =
-        '/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine'
-      if (profile.bottlePath) {
-        args.push('--bottle', profile.bottlePath)
-      }
-      args.push('--', profile.executablePath)
-      break
-    case 'whisky':
-      program = profile.wineExecutablePath || DEFAULT_WHISKY_WINE_PATH
-      if (profile.bottlePath) {
-        env.WINEPREFIX = profile.bottlePath
-      }
-      args.push(profile.executablePath)
-      break
-    case 'gptk':
-      program = 'gameportingtoolkit'
-      if (profile.bottlePath) {
-        args.push(profile.bottlePath)
-      }
-      args.push(profile.executablePath)
-      break
+  const provider = getRuntimeProvider(profile.backend)
+  if (!provider) {
+    throw new LaunchRequestError(
+      `No runtime provider found for backend "${profile.backend}".`
+    )
   }
 
-  if (profile.launchArgs) args.push(...profile.launchArgs)
+  const cmd = provider.buildLaunchCommand({
+    targetExecutable: profile.executablePath,
+    containerPath: profile.bottlePath,
+    runtimeExecutable: profile.wineExecutablePath,
+    envVars: profile.environmentVariables,
+    launchArgs: profile.launchArgs,
+  })
+
+  // Convert LaunchCommand → LaunchRequest (empty env → undefined)
+  const envVars =
+    Object.keys(cmd.env).length > 0 ? cmd.env : undefined
 
   return {
-    executablePath: program,
-    args,
-    envVars: cleanEnv(env),
+    executablePath: cmd.program,
+    args: cmd.args,
+    envVars,
   }
 }
 

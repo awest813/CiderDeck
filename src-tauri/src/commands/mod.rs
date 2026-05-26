@@ -9,6 +9,7 @@ pub mod launcher;
 pub mod notifications;
 pub mod preferences;
 pub mod profile;
+pub mod provider;
 pub mod quick_pane;
 pub mod recovery;
 pub mod runtime;
