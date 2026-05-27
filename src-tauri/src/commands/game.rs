@@ -22,6 +22,8 @@ pub enum GameImportSource {
     SteamLibrary,
     /// Imported from Epic Games Launcher
     EpicLibrary,
+    /// Imported from GOG Galaxy
+    GogLibrary,
 }
 
 // ============================================================================
@@ -52,6 +54,21 @@ pub struct EpicGame {
     pub install_location: String,
     /// Relative path to the main executable (if present in manifest)
     pub launch_executable: Option<String>,
+}
+
+// ============================================================================
+// GOG Galaxy Detection
+// ============================================================================
+
+/// A game found via GOG Galaxy.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct GogGame {
+    /// GOG game / product ID
+    pub game_id: String,
+    /// Display name of the game
+    pub name: String,
+    /// Absolute path to the install directory (directory containing the info file)
+    pub install_dir: String,
 }
 
 fn home_dir() -> Option<PathBuf> {
@@ -272,6 +289,124 @@ pub async fn detect_epic_games() -> Vec<EpicGame> {
     }
 
     log::info!("Epic detection: {} games found", games.len());
+    games
+}
+
+/// Detect all games installed via GOG Galaxy (macOS).
+///
+/// GOG leaves a `goggame-<id>.info` JSON file in each game's install directory.
+/// This function scans common installation locations for those marker files and
+/// parses the game name and ID from them.
+///
+/// Locations scanned (depth 1):
+/// - `/Applications/`
+/// - `~/Applications/`
+/// - `~/GOG Games/`
+#[tauri::command]
+#[specta::specta]
+pub async fn detect_gog_games() -> Vec<GogGame> {
+    let home = home_dir();
+
+    // Candidate root directories that GOG typically installs games into.
+    let mut search_roots: Vec<PathBuf> = vec![PathBuf::from("/Applications")];
+    if let Some(ref h) = home {
+        search_roots.push(h.join("Applications"));
+        search_roots.push(h.join("GOG Games"));
+    }
+
+    let mut games: Vec<GogGame> = Vec::new();
+
+    for root in search_roots {
+        if !root.is_dir() {
+            continue;
+        }
+
+        // Scan one level deep inside the root directory.
+        let top_entries = match std::fs::read_dir(&root) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        for top_entry in top_entries.flatten() {
+            let top_path = top_entry.path();
+
+            // GOG info files can live directly in a game folder or one level
+            // inside an `.app` bundle (Contents/).  Check both locations.
+            let candidate_dirs: Vec<PathBuf> = if top_path.is_dir() {
+                vec![top_path.clone(), top_path.join("Contents")]
+            } else {
+                continue;
+            };
+
+            for dir in candidate_dirs {
+                if !dir.is_dir() {
+                    continue;
+                }
+                let inner_entries = match std::fs::read_dir(&dir) {
+                    Ok(e) => e,
+                    Err(_) => continue,
+                };
+                for entry in inner_entries.flatten() {
+                    let path = entry.path();
+                    let file_name = match path.file_name().and_then(|n| n.to_str()) {
+                        Some(n) => n.to_string(),
+                        None => continue,
+                    };
+                    // GOG info files are named `goggame-<id>.info`
+                    if !file_name.starts_with("goggame-")
+                        || path.extension().and_then(|e| e.to_str()) != Some("info")
+                    {
+                        continue;
+                    }
+
+                    let text = match std::fs::read_to_string(&path) {
+                        Ok(t) => t,
+                        Err(_) => continue,
+                    };
+                    let json: serde_json::Value = match serde_json::from_str(&text) {
+                        Ok(v) => v,
+                        Err(_) => continue,
+                    };
+
+                    // Skip DLC / helper entries — only keep root / standalone games.
+                    let game_id = match json.get("gameId").and_then(|v| v.as_str()) {
+                        Some(id) => id.to_string(),
+                        None => continue,
+                    };
+                    let root_game_id = json
+                        .get("rootGameId")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(&game_id)
+                        .to_string();
+                    if game_id != root_game_id {
+                        continue;
+                    }
+
+                    let name = match json.get("gameName").and_then(|v| v.as_str()) {
+                        Some(n) if !n.is_empty() => n.to_string(),
+                        _ => continue,
+                    };
+
+                    // Use the top-level entry path as the install directory.
+                    let install_dir = top_path.to_string_lossy().into_owned();
+
+                    // Avoid duplicates if a game has multiple info files in sub-dirs.
+                    if games.iter().any(|g: &GogGame| g.game_id == game_id) {
+                        continue;
+                    }
+
+                    games.push(GogGame {
+                        game_id,
+                        name,
+                        install_dir,
+                    });
+                    break; // found info file for this top-level dir, move on
+                }
+            }
+        }
+    }
+
+    log::info!("GOG detection: {} games found", games.len());
     games
 }
 

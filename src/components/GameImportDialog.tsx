@@ -47,6 +47,11 @@ const importSources: {
     label: 'Epic',
     description: 'Epic Games install folder',
   },
+  {
+    value: 'GogLibrary',
+    label: 'GOG',
+    description: 'GOG Galaxy install folder',
+  },
 ]
 
 export function GameImportDialog({
@@ -129,7 +134,8 @@ export function GameImportDialog({
           {(source === 'ExeMsi' ||
             source === 'AppBundle' ||
             source === 'SteamLibrary' ||
-            source === 'EpicLibrary') && (
+            source === 'EpicLibrary' ||
+            source === 'GogLibrary') && (
             <div className="space-y-2">
               <Label htmlFor="install-path">Install path</Label>
               <Input

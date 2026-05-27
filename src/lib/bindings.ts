@@ -346,6 +346,9 @@ async detectSteamGames() : Promise<SteamGame[]> {
 async detectEpicGames() : Promise<EpicGame[]> {
     return await TAURI_INVOKE("detect_epic_games");
 },
+async detectGogGames() : Promise<GogGame[]> {
+    return await TAURI_INVOKE("detect_gog_games");
+},
 async listProfiles() : Promise<Result<JsonValue[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("list_profiles") };
@@ -445,7 +448,7 @@ export type RecoveryError =
 /**
  * How the game was imported into the library.
  */
-export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi" | "SteamLibrary" | "EpicLibrary"
+export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi" | "SteamLibrary" | "EpicLibrary" | "GogLibrary"
 /**
  * A game entry in the library.
  */
@@ -466,6 +469,10 @@ export type SteamGame = { app_id: string; name: string; install_dir: string; siz
  * A game found via the Epic Games Launcher.
  */
 export type EpicGame = { app_name: string; name: string; install_location: string; launch_executable: string | null }
+/**
+ * A game found via GOG Galaxy.
+ */
+export type GogGame = { game_id: string; name: string; install_dir: string }
 
 /** tauri-specta globals **/
 
