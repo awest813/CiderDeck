@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { LayoutGrid, List } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { GameCard } from '@/components/GameCard'
 import { GameDetailPanel } from '@/components/GameDetailPanel'
 import { GameImportDialog } from '@/components/GameImportDialog'
@@ -190,35 +192,37 @@ export function GameLibraryPage() {
               Your games, linked to runtime profiles for one-click launch.
             </p>
           </div>
-          <Button
-            type="button"
-            onClick={() => {
-              setDetectKey(k => k + 1)
-              setDetectOpen(true)
-            }}
-            variant="secondary"
-          >
-            + Auto-Detect
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              setLauncherKey(k => k + 1)
-              setLauncherOpen(true)
-            }}
-            variant="secondary"
-          >
-            + From Launchers
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              setImportKey(k => k + 1)
-              setImportOpen(true)
-            }}
-          >
-            + Import Game
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              onClick={() => {
+                setDetectKey(k => k + 1)
+                setDetectOpen(true)
+              }}
+              variant="secondary"
+            >
+              + Auto-Detect
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setLauncherKey(k => k + 1)
+                setLauncherOpen(true)
+              }}
+              variant="secondary"
+            >
+              + From Launchers
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setImportKey(k => k + 1)
+                setImportOpen(true)
+              }}
+            >
+              + Import Game
+            </Button>
+          </div>
         </div>
 
         {allTags.length > 0 ? (
@@ -245,23 +249,23 @@ export function GameLibraryPage() {
           </div>
         ) : null}
 
-        <div className="mb-4 flex gap-2">
-          <Button
-            type="button"
+        <div className="mb-4">
+          <ToggleGroup
+            type="single"
+            value={viewMode}
+            onValueChange={v => {
+              if (v === 'grid' || v === 'list') setViewMode(v)
+            }}
+            variant="outline"
             size="sm"
-            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-            onClick={() => setViewMode('grid')}
           >
-            Grid
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-            onClick={() => setViewMode('list')}
-          >
-            List
-          </Button>
+            <ToggleGroupItem value="grid" aria-label="Grid view">
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="List view">
+              <List className="h-3.5 w-3.5" />
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
         {filteredGames.length === 0 ? (

@@ -21,12 +21,6 @@
   "preferences.general.keyboardShortcuts": "Keyboard Shortcuts",
   "preferences.general.quickPaneShortcut": "Quick Pane Shortcut",
   "preferences.general.quickPaneShortcutDescription": "Global keyboard shortcut to toggle the quick pane from any application",
-  "preferences.general.exampleSettings": "Example Settings",
-  "preferences.general.exampleText": "Example Text Setting",
-  "preferences.general.exampleTextDescription": "This is an example text input setting (not persisted)",
-  "preferences.general.exampleTextPlaceholder": "Enter example text",
-  "preferences.general.exampleToggle": "Example Toggle Setting",
-  "preferences.general.exampleToggleDescription": "This is an example switch/toggle setting (not persisted)",
 
   "preferences.appearance.theme": "Theme",
   "preferences.appearance.colorTheme": "Color Theme",
@@ -39,14 +33,7 @@
   "preferences.appearance.languageDescription": "Choose your preferred display language",
   "preferences.appearance.language.system": "System Default",
 
-  "preferences.advanced.title": "Example Advanced Settings",
-  "preferences.advanced.toggle": "Example Advanced Toggle",
-  "preferences.advanced.toggleDescription": "This is an example advanced toggle setting (not persisted)",
-  "preferences.advanced.dropdown": "Example Dropdown Setting",
-  "preferences.advanced.dropdownDescription": "This is an example dropdown/select setting (not persisted)",
-  "preferences.advanced.option1": "Example Option 1",
-  "preferences.advanced.option2": "Example Option 2",
-  "preferences.advanced.option3": "Example Option 3",
+  "preferences.advanced.empty": "No advanced settings are configured yet.",
 
   "common.enabled": "Enabled",
   "common.disabled": "Disabled",

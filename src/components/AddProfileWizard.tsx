@@ -127,11 +127,6 @@ export function AddProfileWizard({
           <Button type="button" variant="ghost" onClick={handleBack}>
             {step === 'category' ? 'Cancel' : 'Back'}
           </Button>
-          {step === 'helper' ? (
-            <Button type="button" variant="ghost" onClick={onCancel}>
-              Cancel
-            </Button>
-          ) : null}
         </div>
       </CardContent>
     </Card>
