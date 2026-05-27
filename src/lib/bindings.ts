@@ -235,6 +235,76 @@ async deleteBottle(bottlePath: string) : Promise<Result<string, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Clone an existing bottle to a new location.
+ * Preserves all files including the CiderDeck sidecar.
+ */
+async cloneBottle(sourcePath: string, destPath: string, name: string) : Promise<Result<Bottle, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("clone_bottle", { sourcePath, destPath, name }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Repair a bottle by running wineboot --update.
+ */
+async repairBottle(bottlePath: string, runtime: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("repair_bottle", { bottlePath, runtime }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Reset a bottle back to a clean state.
+ * Removes the Windows filesystem and registry, then reinitializes.
+ * The CiderDeck sidecar (notes) is preserved across the reset.
+ */
+async resetBottle(bottlePath: string, name: string, runtime: string) : Promise<Result<Bottle, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("reset_bottle", { bottlePath, name, runtime }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Export a bottle as a compressed tar archive (.tar.gz).
+ * Returns the path of the created archive.
+ */
+async exportBottle(bottlePath: string, archivePath: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("export_bottle", { bottlePath, archivePath }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Import a bottle from a compressed tar archive (.tar.gz).
+ */
+async importBottle(archivePath: string, destPath: string, name: string) : Promise<Result<Bottle, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("import_bottle", { archivePath, destPath, name }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Persist user-provided notes for a bottle.
+ */
+async saveBottleNotes(bottlePath: string, notes: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_bottle_notes", { bottlePath, notes }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async listGames() : Promise<Result<Game[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("list_games") };
