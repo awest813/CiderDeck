@@ -18,6 +18,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/lib/bindings'
 import type { CiderDeckProfile } from '@/types/Profile'
@@ -27,6 +35,7 @@ interface GameDetailPanelProps {
   profiles: CiderDeckProfile[]
   onUpdate: (game: Game) => void
   onDelete: (gameId: string) => void
+  onLaunch: (game: Game, profileId: string) => Promise<void>
 }
 
 export function GameDetailPanel({
@@ -34,8 +43,10 @@ export function GameDetailPanel({
   profiles,
   onUpdate,
   onDelete,
+  onLaunch,
 }: GameDetailPanelProps) {
   const [editing, setEditing] = useState(false)
+  const [launching, setLaunching] = useState(false)
   const [title, setTitle] = useState(game.title)
   const [notes, setNotes] = useState(game.notes ?? '')
   const [artworkPath, setArtworkPath] = useState(game.artworkPath ?? '')
@@ -66,6 +77,15 @@ export function GameDetailPanel({
         ? game.profileIds.filter(id => id !== profileId)
         : [...game.profileIds, profileId],
     })
+  }
+
+  const handleLaunchWith = async (profileId: string) => {
+    setLaunching(true)
+    try {
+      await onLaunch(game, profileId)
+    } finally {
+      setLaunching(false)
+    }
   }
 
   return (
@@ -185,7 +205,46 @@ export function GameDetailPanel({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Linked Profiles</CardTitle>
+          <CardTitle className="flex items-center justify-between text-sm">
+            <span>Linked Profiles</span>
+            {linkedProfiles.length > 1 ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={launching}
+                  >
+                    {launching ? 'Launching…' : 'Launch with…'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Choose profile</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {linkedProfiles.map(profile => (
+                    <DropdownMenuItem
+                      key={profile.id}
+                      onClick={() => handleLaunchWith(profile.id)}
+                    >
+                      {profile.title}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : linkedProfiles.length === 1 ? (
+              <Button
+                type="button"
+                size="sm"
+                disabled={launching}
+                onClick={() => {
+                  const profile = linkedProfiles[0]
+                  if (profile) handleLaunchWith(profile.id)
+                }}
+              >
+                {launching ? 'Launching…' : 'Launch'}
+              </Button>
+            ) : null}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {linkedProfiles.length > 0 ? (

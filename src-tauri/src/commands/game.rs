@@ -18,6 +18,261 @@ pub enum GameImportSource {
     Manual,
     AppBundle,
     ExeMsi,
+    /// Imported from a Steam library
+    SteamLibrary,
+    /// Imported from Epic Games Launcher
+    EpicLibrary,
+}
+
+// ============================================================================
+// Steam Detection
+// ============================================================================
+
+/// A game found in an installed Steam library.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct SteamGame {
+    /// Steam app ID (numeric)
+    pub app_id: String,
+    /// Display name of the game
+    pub name: String,
+    /// Absolute path to the install directory
+    pub install_dir: String,
+    /// Size on disk in bytes (from Steam manifest)
+    pub size_on_disk: Option<u64>,
+}
+
+/// A game found via the Epic Games Launcher.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct EpicGame {
+    /// Epic catalog item ID / app name
+    pub app_name: String,
+    /// Display name of the game
+    pub name: String,
+    /// Absolute path to the install directory
+    pub install_location: String,
+    /// Relative path to the main executable (if present in manifest)
+    pub launch_executable: Option<String>,
+}
+
+fn home_dir() -> Option<PathBuf> {
+    std::env::var("HOME").ok().map(PathBuf::from)
+}
+
+/// Parse a minimal subset of Valve's KeyValues (VDF) format.
+///
+/// Only handles flat `"key"\t"value"` pairs at depth ≤ 1 inside the first
+/// top-level block. This is sufficient to read `appmanifest_*.acf` and the
+/// root level of `libraryfolders.vdf`.
+fn vdf_get(text: &str, key: &str) -> Option<String> {
+    let needle = format!("\"{key}\"");
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(&needle) {
+            // Rest of line after the key token
+            let after = trimmed[needle.len()..].trim();
+            // Value should be a quoted string
+            if after.starts_with('"') && after.ends_with('"') && after.len() >= 2 {
+                return Some(after[1..after.len() - 1].to_string());
+            }
+        }
+    }
+    None
+}
+
+/// Extract all library paths from `libraryfolders.vdf`.
+///
+/// Steam stores the canonical library at the `steamapps/` directory passed in,
+/// plus extra libraries listed in the VDF. Each extra library entry has a
+/// `"path"` field.
+fn parse_library_folders(vdf_path: &std::path::Path) -> Vec<PathBuf> {
+    let text = match std::fs::read_to_string(vdf_path) {
+        Ok(t) => t,
+        Err(_) => return Vec::new(),
+    };
+
+    let mut paths = Vec::new();
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("\"path\"") {
+            let after = trimmed["\"path\"".len()..].trim();
+            if after.starts_with('"') && after.ends_with('"') && after.len() >= 2 {
+                let raw = &after[1..after.len() - 1];
+                let lib_path = PathBuf::from(raw).join("steamapps");
+                if lib_path.is_dir() {
+                    paths.push(lib_path);
+                }
+            }
+        }
+    }
+    paths
+}
+
+/// Parse one `appmanifest_*.acf` file into a `SteamGame`.
+fn parse_acf(path: &std::path::Path, install_base: &std::path::Path) -> Option<SteamGame> {
+    let text = std::fs::read_to_string(path).ok()?;
+    let app_id = vdf_get(&text, "appid")?;
+    let name = vdf_get(&text, "name")?;
+    let install_sub = vdf_get(&text, "installdir")?;
+    let size_on_disk = vdf_get(&text, "SizeOnDisk").and_then(|s| s.parse::<u64>().ok());
+
+    let install_dir = install_base
+        .join("common")
+        .join(&install_sub)
+        .to_string_lossy()
+        .to_string();
+
+    Some(SteamGame {
+        app_id,
+        name,
+        install_dir,
+        size_on_disk,
+    })
+}
+
+/// Detect all Steam games installed on the system (macOS).
+///
+/// Scans `~/Library/Application Support/Steam/steamapps` plus any additional
+/// library paths listed in `libraryfolders.vdf`.
+#[tauri::command]
+#[specta::specta]
+pub async fn detect_steam_games() -> Vec<SteamGame> {
+    let home = match home_dir() {
+        Some(h) => h,
+        None => return Vec::new(),
+    };
+
+    let default_steamapps = home
+        .join("Library")
+        .join("Application Support")
+        .join("Steam")
+        .join("steamapps");
+
+    let mut library_dirs: Vec<PathBuf> = Vec::new();
+    if default_steamapps.is_dir() {
+        library_dirs.push(default_steamapps.clone());
+    }
+
+    // Discover additional library paths
+    let vdf = default_steamapps.join("libraryfolders.vdf");
+    if vdf.exists() {
+        library_dirs.extend(parse_library_folders(&vdf));
+    }
+
+    // De-duplicate library dirs
+    library_dirs.sort();
+    library_dirs.dedup();
+
+    let mut games: Vec<SteamGame> = Vec::new();
+    let mut seen_app_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+    for lib_dir in &library_dirs {
+        let entries = match std::fs::read_dir(lib_dir) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let fname = path
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+            if fname.starts_with("appmanifest_") && fname.ends_with(".acf") {
+                if let Some(game) = parse_acf(&path, lib_dir) {
+                    if seen_app_ids.insert(game.app_id.clone()) {
+                        games.push(game);
+                    }
+                }
+            }
+        }
+    }
+
+    log::info!("Steam detection: {} games found", games.len());
+    games
+}
+
+// ============================================================================
+// Epic Games Detection
+// ============================================================================
+
+/// Detect all games installed via the Epic Games Launcher (macOS).
+///
+/// Scans `~/Library/Application Support/Epic/EpicGamesLauncher/Data/Manifests`
+/// for `*.item` JSON files. Each file describes one installed game.
+#[tauri::command]
+#[specta::specta]
+pub async fn detect_epic_games() -> Vec<EpicGame> {
+    let home = match home_dir() {
+        Some(h) => h,
+        None => return Vec::new(),
+    };
+
+    let manifests_dir = home
+        .join("Library")
+        .join("Application Support")
+        .join("Epic")
+        .join("EpicGamesLauncher")
+        .join("Data")
+        .join("Manifests");
+
+    if !manifests_dir.is_dir() {
+        return Vec::new();
+    }
+
+    let mut games: Vec<EpicGame> = Vec::new();
+
+    let entries = match std::fs::read_dir(&manifests_dir) {
+        Ok(e) => e,
+        Err(_) => return games,
+    };
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) != Some("item") {
+            continue;
+        }
+        let text = match std::fs::read_to_string(&path) {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        let json: serde_json::Value = match serde_json::from_str(&text) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+
+        let name = match json.get("DisplayName").and_then(|v| v.as_str()) {
+            Some(n) => n.to_string(),
+            None => continue,
+        };
+        let install_location = match json.get("InstallLocation").and_then(|v| v.as_str()) {
+            Some(p) => p.to_string(),
+            None => continue,
+        };
+        let app_name = json
+            .get("MainGameAppName")
+            .and_then(|v| v.as_str())
+            .or_else(|| json.get("AppName").and_then(|v| v.as_str()))
+            .unwrap_or("")
+            .to_string();
+        let launch_executable = json
+            .get("LaunchExecutable")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+
+        // Skip entries that look like DLC/addons (no install location)
+        if install_location.is_empty() {
+            continue;
+        }
+
+        games.push(EpicGame {
+            app_name,
+            name,
+            install_location,
+            launch_executable,
+        });
+    }
+
+    log::info!("Epic detection: {} games found", games.len());
+    games
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]

@@ -57,14 +57,24 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 
 ## v0.4 — Game-Centric Library Workflows
 
-- Shift from tool-centric launching to game-centric library management
-- Map each game to one or more runtime profiles/bottles
-- Manual imports from:
-  - app bundles
-  - Steam/GOG/Epic install paths
-  - standalone EXE/MSI workflows
-- Install flows for installer-based and portable games
-- Add per-game artwork, tags, notes, and launch options
+**Phase A** ✅ Complete — core game library foundation:
+- `Game` data model (Rust + TypeScript), CRUD Tauri commands, JSON persistence
+- Game library UI: grid/list view, tag filter, artwork support
+- `GameImportDialog` with Manual / EXE/MSI / App Bundle sources
+- Bottle auto-detection UI integrated into profile management
+
+**Phase B** ✅ Complete — expanded import and launch workflows:
+- Steam and Epic Games launcher detection (`detect_steam_games`, `detect_epic_games`)
+- `LauncherImportDialog`: tabbed Steam/Epic import with duplicate filtering
+- "+ From Launchers" entry point in Game Library toolbar
+- Multi-profile launch picker in `GameDetailPanel` (single button or "Launch with…" dropdown)
+- `SteamLibrary` / `EpicLibrary` labels in `GameCard` and `GameImportDialog`
+
+Remaining for v0.4 (future iterations):
+- GOG Galaxy detection
+- Portable game onboarding wizard
+- Install flows for installer-based games
+- Per-game launch options beyond profile selection
 
 ## v0.5 — Proton-Style Convenience
 

@@ -270,6 +270,12 @@ async importGame(import_: GameImport) : Promise<Result<Game, string>> {
     else return { status: "error", error: e  as any };
 }
 },
+async detectSteamGames() : Promise<SteamGame[]> {
+    return await TAURI_INVOKE("detect_steam_games");
+},
+async detectEpicGames() : Promise<EpicGame[]> {
+    return await TAURI_INVOKE("detect_epic_games");
+},
 async listProfiles() : Promise<Result<JsonValue[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("list_profiles") };
@@ -369,7 +375,7 @@ export type RecoveryError =
 /**
  * How the game was imported into the library.
  */
-export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi"
+export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi" | "SteamLibrary" | "EpicLibrary"
 /**
  * A game entry in the library.
  */
@@ -382,6 +388,14 @@ export type DetectedGame = { name: string; exe_path: string; bottle_id: string; 
  * Data needed to import a new game into the library.
  */
 export type GameImport = { title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[] }
+/**
+ * A game found in a Steam library.
+ */
+export type SteamGame = { app_id: string; name: string; install_dir: string; size_on_disk: number | null }
+/**
+ * A game found via the Epic Games Launcher.
+ */
+export type EpicGame = { app_name: string; name: string; install_location: string; launch_executable: string | null }
 
 /** tauri-specta globals **/
 
