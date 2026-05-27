@@ -33,6 +33,7 @@ const importSourceLabel: Record<string, string> = {
   ExeMsi: 'EXE/MSI',
   SteamLibrary: 'Steam',
   EpicLibrary: 'Epic',
+  GogLibrary: 'GOG',
 }
 
 export function GameCard({

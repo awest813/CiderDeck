@@ -16,12 +16,14 @@ import { cn } from '@/lib/utils'
 import {
   useSteamDetection,
   useEpicDetection,
+  useGogDetection,
   useRefreshSteam,
   useRefreshEpic,
+  useRefreshGog,
 } from '@/hooks/use-launcher-detection'
 import type { GameImport } from '@/lib/bindings'
 
-type LauncherTab = 'steam' | 'epic'
+type LauncherTab = 'steam' | 'epic' | 'gog'
 
 interface LauncherImportDialogProps {
   open: boolean
@@ -57,9 +59,13 @@ export function LauncherImportDialog({
   const { data: epicGames = [], isLoading: epicLoading } = useEpicDetection(
     open && tab === 'epic'
   )
+  const { data: gogGames = [], isLoading: gogLoading } = useGogDetection(
+    open && tab === 'gog'
+  )
 
   const refreshSteam = useRefreshSteam()
   const refreshEpic = useRefreshEpic()
+  const refreshGog = useRefreshGog()
 
   const switchTab = (next: LauncherTab) => {
     setTab(next)
@@ -98,7 +104,7 @@ export function LauncherImportDialog({
           profileIds: [],
         })
       }
-    } else {
+    } else if (tab === 'epic') {
       for (const g of epicGames) {
         if (!selectedPaths.has(g.install_location)) continue
         imports.push({
@@ -111,6 +117,19 @@ export function LauncherImportDialog({
           profileIds: [],
         })
       }
+    } else {
+      for (const g of gogGames) {
+        if (!selectedPaths.has(g.install_dir)) continue
+        imports.push({
+          title: g.name,
+          importSource: 'GogLibrary',
+          installPath: g.install_dir,
+          artworkPath: null,
+          tags: ['gog'],
+          notes: null,
+          profileIds: [],
+        })
+      }
     }
 
     if (imports.length > 0) {
@@ -119,8 +138,11 @@ export function LauncherImportDialog({
     onOpenChange(false)
   }
 
-  const isLoading = tab === 'steam' ? steamLoading : epicLoading
-  const isRefreshing = (tab === 'steam' ? refreshSteam : refreshEpic).isPending
+  const isLoading =
+    tab === 'steam' ? steamLoading : tab === 'epic' ? epicLoading : gogLoading
+  const isRefreshing = (
+    tab === 'steam' ? refreshSteam : tab === 'epic' ? refreshEpic : refreshGog
+  ).isPending
 
   const currentGames =
     tab === 'steam'
@@ -130,12 +152,19 @@ export function LauncherImportDialog({
           subtitle: `App ${g.app_id}${formatBytes(g.size_on_disk)}`,
           duplicate: isDuplicate(g.install_dir, g.name),
         }))
-      : epicGames.map(g => ({
-          key: g.install_location,
-          title: g.name,
-          subtitle: g.app_name,
-          duplicate: isDuplicate(g.install_location, g.name),
-        }))
+      : tab === 'epic'
+        ? epicGames.map(g => ({
+            key: g.install_location,
+            title: g.name,
+            subtitle: g.app_name,
+            duplicate: isDuplicate(g.install_location, g.name),
+          }))
+        : gogGames.map(g => ({
+            key: g.install_dir,
+            title: g.name,
+            subtitle: `ID ${g.game_id}`,
+            duplicate: isDuplicate(g.install_dir, g.name),
+          }))
 
   const availableGames = currentGames.filter(g => !g.duplicate)
   const selectedCount = availableGames.filter(g =>
@@ -147,8 +176,12 @@ export function LauncherImportDialog({
       refreshSteam.mutate(undefined, {
         onSuccess: () => setSelectedPaths(new Set()),
       })
-    } else {
+    } else if (tab === 'epic') {
       refreshEpic.mutate(undefined, {
+        onSuccess: () => setSelectedPaths(new Set()),
+      })
+    } else {
+      refreshGog.mutate(undefined, {
         onSuccess: () => setSelectedPaths(new Set()),
       })
     }
@@ -172,7 +205,7 @@ export function LauncherImportDialog({
 
         {/* Tab switcher */}
         <div className="flex gap-1 rounded-lg border p-1">
-          {(['steam', 'epic'] as LauncherTab[]).map(t => (
+          {(['steam', 'epic', 'gog'] as LauncherTab[]).map(t => (
             <button
               key={t}
               type="button"
@@ -184,7 +217,7 @@ export function LauncherImportDialog({
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              {t === 'steam' ? '🎮 Steam' : '🎯 Epic'}
+              {t === 'steam' ? '🎮 Steam' : t === 'epic' ? '🎯 Epic' : '🛒 GOG'}
             </button>
           ))}
         </div>
@@ -198,12 +231,19 @@ export function LauncherImportDialog({
           <div className="flex min-h-32 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center">
             <div>
               <p className="text-sm font-medium">
-                {tab === 'steam' ? 'Steam' : 'Epic'} not detected
+                {tab === 'steam'
+                  ? 'Steam'
+                  : tab === 'epic'
+                    ? 'Epic'
+                    : 'GOG Galaxy'}{' '}
+                not detected
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {tab === 'steam'
                   ? 'Make sure Steam is installed and has at least one game.'
-                  : 'Make sure Epic Games Launcher is installed.'}
+                  : tab === 'epic'
+                    ? 'Make sure Epic Games Launcher is installed.'
+                    : 'Make sure GOG Galaxy is installed and has at least one game.'}
               </p>
             </div>
           </div>
