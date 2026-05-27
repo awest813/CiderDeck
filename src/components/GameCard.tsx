@@ -66,7 +66,7 @@ export function GameCard({
             <div
               className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105 img-premium"
               style={{
-                backgroundImage: `url("${CSS.escape(game.artworkPath)}")`,
+                backgroundImage: `url("${game.artworkPath.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}")`,
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />

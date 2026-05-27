@@ -182,7 +182,11 @@ impl RuntimeProvider for WineProvider {
 
     fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {
         let mut args = Vec::new();
-        if let Some(exe) = config.target_executable.as_deref().filter(|s| !s.is_empty()) {
+        if let Some(exe) = config
+            .target_executable
+            .as_deref()
+            .filter(|s| !s.is_empty())
+        {
             args.push(exe.to_string());
         }
         args.extend(config.launch_args.clone());
@@ -273,7 +277,11 @@ impl RuntimeProvider for CrossOverProvider {
             args.push("--bottle".to_string());
             args.push(bottle);
         }
-        if let Some(exe) = config.target_executable.as_deref().filter(|s| !s.is_empty()) {
+        if let Some(exe) = config
+            .target_executable
+            .as_deref()
+            .filter(|s| !s.is_empty())
+        {
             args.push("--".to_string());
             args.push(exe.to_string());
         }
@@ -359,7 +367,11 @@ impl RuntimeProvider for WhiskyProvider {
 
     fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {
         let mut args = Vec::new();
-        if let Some(exe) = config.target_executable.as_deref().filter(|s| !s.is_empty()) {
+        if let Some(exe) = config
+            .target_executable
+            .as_deref()
+            .filter(|s| !s.is_empty())
+        {
             args.push(exe.to_string());
         }
         args.extend(config.launch_args.clone());
@@ -416,11 +428,7 @@ impl RuntimeProvider for GptkProvider {
         {
             errors.push("Target executable is required.".to_string());
         }
-        if config
-            .container_path
-            .as_deref()
-            .map_or(true, str::is_empty)
-        {
+        if config.container_path.as_deref().map_or(true, str::is_empty) {
             errors.push("Container (bottle) path is required for GPTK.".to_string());
         }
         ProviderValidation {
@@ -452,7 +460,11 @@ impl RuntimeProvider for GptkProvider {
         if let Some(container) = self.container_path(config) {
             args.push(container);
         }
-        if let Some(exe) = config.target_executable.as_deref().filter(|s| !s.is_empty()) {
+        if let Some(exe) = config
+            .target_executable
+            .as_deref()
+            .filter(|s| !s.is_empty())
+        {
             args.push(exe.to_string());
         }
         args.extend(config.launch_args.clone());
@@ -543,7 +555,11 @@ impl RuntimeProvider for CustomProvider {
 
     fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {
         let mut args = Vec::new();
-        if let Some(exe) = config.target_executable.as_deref().filter(|s| !s.is_empty()) {
+        if let Some(exe) = config
+            .target_executable
+            .as_deref()
+            .filter(|s| !s.is_empty())
+        {
             args.push(exe.to_string());
         }
         args.extend(config.launch_args.clone());
@@ -608,7 +624,9 @@ mod tests {
     #[test]
     fn wine_defaults_to_wine_binary() {
         let p = WineProvider;
-        let cmd = p.build_launch_command(&wine_config("/Games/game.exe")).unwrap();
+        let cmd = p
+            .build_launch_command(&wine_config("/Games/game.exe"))
+            .unwrap();
         assert_eq!(cmd.program, "wine");
         assert_eq!(cmd.args, vec!["/Games/game.exe"]);
         assert!(cmd.env.is_empty());
@@ -625,7 +643,10 @@ mod tests {
             launch_args: Vec::new(),
         };
         let cmd = p.build_launch_command(&config).unwrap();
-        assert_eq!(cmd.env.get("WINEPREFIX").map(String::as_str), Some("/prefix/wine"));
+        assert_eq!(
+            cmd.env.get("WINEPREFIX").map(String::as_str),
+            Some("/prefix/wine")
+        );
     }
 
     #[test]
@@ -656,7 +677,10 @@ mod tests {
         };
         let cmd = p.build_launch_command(&config).unwrap();
         // User-specified env var wins
-        assert_eq!(cmd.env.get("WINEPREFIX").map(String::as_str), Some("/user/prefix"));
+        assert_eq!(
+            cmd.env.get("WINEPREFIX").map(String::as_str),
+            Some("/user/prefix")
+        );
     }
 
     #[test]
@@ -828,9 +852,6 @@ mod tests {
             launch_args: vec!["-fullscreen".to_string(), "-nosound".to_string()],
         };
         let cmd = p.build_launch_command(&config).unwrap();
-        assert_eq!(
-            cmd.args,
-            vec!["/Games/game.exe", "-fullscreen", "-nosound"]
-        );
+        assert_eq!(cmd.args, vec!["/Games/game.exe", "-fullscreen", "-nosound"]);
     }
 }

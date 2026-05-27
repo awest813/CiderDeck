@@ -1006,9 +1006,7 @@ pub async fn delete_bottle(bottle_path: String) -> Result<String, String> {
 /// Recursively copy a directory tree from `src` to `dst`.
 fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), String> {
     fs::create_dir_all(dst).map_err(|e| format!("Failed to create directory: {e}"))?;
-    for entry in
-        fs::read_dir(src).map_err(|e| format!("Failed to read source directory: {e}"))?
-    {
+    for entry in fs::read_dir(src).map_err(|e| format!("Failed to read source directory: {e}"))? {
         let entry = entry.map_err(|e| format!("Failed to read directory entry: {e}"))?;
         let src_path = entry.path();
         let dst_path = dst.join(entry.file_name());
@@ -1025,8 +1023,7 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), String> {
         } else if src_path.is_dir() {
             copy_dir_all(&src_path, &dst_path)?;
         } else {
-            fs::copy(&src_path, &dst_path)
-                .map_err(|e| format!("Failed to copy file: {e}"))?;
+            fs::copy(&src_path, &dst_path).map_err(|e| format!("Failed to copy file: {e}"))?;
         }
     }
     Ok(())
@@ -1036,9 +1033,7 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), String> {
 fn wine_bin_for_runtime(runtime: &str) -> &'static str {
     match runtime {
         "whisky" => "/Applications/Whisky.app/Contents/MacOS/wine64",
-        "crossover" => {
-            "/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
-        }
+        "crossover" => "/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine",
         _ => "wine",
     }
 }
@@ -1057,7 +1052,8 @@ pub async fn clone_bottle(
     let src = Path::new(&source_path);
     let dst = PathBuf::from(&dest_path);
 
-    let canonical_src = fs::canonicalize(src).map_err(|_| "Source bottle path does not exist.".to_string())?;
+    let canonical_src =
+        fs::canonicalize(src).map_err(|_| "Source bottle path does not exist.".to_string())?;
 
     if !is_valid_prefix(&canonical_src) {
         return Err("Source path does not appear to be a valid Wine prefix.".to_string());
@@ -1157,8 +1153,8 @@ pub async fn reset_bottle(
         return Err("Bottle path does not exist.".to_string());
     }
 
-    let canonical = fs::canonicalize(&path)
-        .map_err(|_| "Failed to resolve bottle path.".to_string())?;
+    let canonical =
+        fs::canonicalize(&path).map_err(|_| "Failed to resolve bottle path.".to_string())?;
 
     if !is_valid_prefix(&canonical) {
         return Err("Path does not appear to be a valid Wine prefix.".to_string());
@@ -1237,7 +1233,8 @@ pub async fn export_bottle(bottle_path: String, archive_path: String) -> Result<
         return Err("Bottle path does not exist.".to_string());
     }
 
-    let canonical = fs::canonicalize(src).map_err(|_| "Failed to resolve bottle path.".to_string())?;
+    let canonical =
+        fs::canonicalize(src).map_err(|_| "Failed to resolve bottle path.".to_string())?;
 
     if !is_valid_prefix(&canonical) {
         return Err("Path does not appear to be a valid Wine prefix.".to_string());
@@ -1293,7 +1290,8 @@ pub async fn import_bottle(
         return Err("Destination path already exists.".to_string());
     }
 
-    fs::create_dir_all(&dest).map_err(|e| format!("Failed to create destination directory: {e}"))?;
+    fs::create_dir_all(&dest)
+        .map_err(|e| format!("Failed to create destination directory: {e}"))?;
 
     let output = Command::new("tar")
         .args([

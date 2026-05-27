@@ -156,11 +156,7 @@ mod tests {
 
     #[test]
     fn filter_all_invalid_returns_empty() {
-        let parsed = vec![
-            json!({"id": "x"}),
-            json!({"title": "y"}),
-            json!(null),
-        ];
+        let parsed = vec![json!({"id": "x"}), json!({"title": "y"}), json!(null)];
         let valid = filter_valid_profiles(parsed);
         assert!(valid.is_empty());
     }

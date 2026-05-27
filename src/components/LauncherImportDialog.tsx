@@ -51,14 +51,12 @@ export function LauncherImportDialog({
   const [tab, setTab] = useState<LauncherTab>('steam')
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set())
 
-  const {
-    data: steamGames = [],
-    isLoading: steamLoading,
-  } = useSteamDetection(open && tab === 'steam')
-  const {
-    data: epicGames = [],
-    isLoading: epicLoading,
-  } = useEpicDetection(open && tab === 'epic')
+  const { data: steamGames = [], isLoading: steamLoading } = useSteamDetection(
+    open && tab === 'steam'
+  )
+  const { data: epicGames = [], isLoading: epicLoading } = useEpicDetection(
+    open && tab === 'epic'
+  )
 
   const refreshSteam = useRefreshSteam()
   const refreshEpic = useRefreshEpic()
@@ -122,8 +120,7 @@ export function LauncherImportDialog({
   }
 
   const isLoading = tab === 'steam' ? steamLoading : epicLoading
-  const isRefreshing =
-    (tab === 'steam' ? refreshSteam : refreshEpic).isPending
+  const isRefreshing = (tab === 'steam' ? refreshSteam : refreshEpic).isPending
 
   const currentGames =
     tab === 'steam'

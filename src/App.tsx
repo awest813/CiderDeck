@@ -68,8 +68,9 @@ function App() {
         if (update && update.version) {
           logger.info(`Update available: ${update.version}`)
         }
-      } catch {
-        // Silent fail for update checks in test environment
+      } catch (error) {
+        // Silent fail for update checks in test/dev environment
+        logger.warn('Update check failed', { error })
       }
     }
 
