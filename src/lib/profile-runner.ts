@@ -4,6 +4,7 @@ import { isTauri } from '@tauri-apps/api/core'
 import { commands } from '@/lib/tauri-bindings'
 import { createId } from '@/lib/profile-storage'
 import { buildLaunchRequest, LaunchRequestError } from '@/lib/profile-launchers'
+import { logger } from '@/lib/logger'
 import type {
   CiderDeckProfile,
   LaunchRequest,
@@ -106,8 +107,9 @@ const persistLogEntry = async (
   if (!isTauri()) return
   try {
     await commands.saveLog(profileId, entry)
-  } catch {
-    // Persisting logs is best-effort. Swallow so launch UI still updates.
+  } catch (error) {
+    // Persisting logs is best-effort. Log the failure and continue.
+    logger.warn('Failed to persist log entry', { profileId, error })
   }
 }
 

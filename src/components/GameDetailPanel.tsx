@@ -121,7 +121,7 @@ export function GameDetailPanel({
             style={
               game.artworkPath
                 ? {
-                    backgroundImage: `url("${CSS.escape(game.artworkPath)}")`,
+                    backgroundImage: `url("${game.artworkPath.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}")`,
                   }
                 : undefined
             }
@@ -289,6 +289,12 @@ export function GameDetailPanel({
                   </Button>
                 </div>
               ))}
+              {unlinkedProfiles.length > 5 ? (
+                <p className="text-xs text-muted-foreground">
+                  +{unlinkedProfiles.length - 5} more profiles — link from the
+                  Profiles page
+                </p>
+              ) : null}
             </div>
           ) : null}
         </CardContent>
