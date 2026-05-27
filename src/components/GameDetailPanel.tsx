@@ -210,11 +210,7 @@ export function GameDetailPanel({
             {linkedProfiles.length > 1 ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={launching}
-                  >
+                  <Button type="button" size="sm" disabled={launching}>
                     {launching ? 'Launching…' : 'Launch with…'}
                   </Button>
                 </DropdownMenuTrigger>

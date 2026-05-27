@@ -58,12 +58,14 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 ## v0.4 — Game-Centric Library Workflows
 
 **Phase A** ✅ Complete — core game library foundation:
+
 - `Game` data model (Rust + TypeScript), CRUD Tauri commands, JSON persistence
 - Game library UI: grid/list view, tag filter, artwork support
 - `GameImportDialog` with Manual / EXE/MSI / App Bundle sources
 - Bottle auto-detection UI integrated into profile management
 
 **Phase B** ✅ Complete — expanded import and launch workflows:
+
 - Steam and Epic Games launcher detection (`detect_steam_games`, `detect_epic_games`)
 - `LauncherImportDialog`: tabbed Steam/Epic import with duplicate filtering
 - "+ From Launchers" entry point in Game Library toolbar
@@ -71,6 +73,7 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 - `SteamLibrary` / `EpicLibrary` labels in `GameCard` and `GameImportDialog`
 
 Remaining for v0.4 (future iterations):
+
 - GOG Galaxy detection
 - Portable game onboarding wizard
 - Install flows for installer-based games

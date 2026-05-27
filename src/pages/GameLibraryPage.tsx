@@ -139,7 +139,10 @@ export function GameLibraryPage() {
     for (const g of detected) {
       const exeLower = g.exe_path.toLowerCase()
       const titleLower = g.name.toLowerCase()
-      if (existingInstallPaths.has(exeLower) || existingTitles.has(titleLower)) {
+      if (
+        existingInstallPaths.has(exeLower) ||
+        existingTitles.has(titleLower)
+      ) {
         continue
       }
       toImport.push({

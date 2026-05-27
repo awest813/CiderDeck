@@ -411,25 +411,17 @@ function BottleCard({ bottle, onRefresh }: BottleCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onSelect={() => setEditingNotes(true)}
-              >
+              <DropdownMenuItem onSelect={() => setEditingNotes(true)}>
                 Edit Notes
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setShowClone(true)}
-              >
+              <DropdownMenuItem onSelect={() => setShowClone(true)}>
                 Clone
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setShowExport(true)}
-              >
+              <DropdownMenuItem onSelect={() => setShowExport(true)}>
                 Export…
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => setConfirmAction('repair')}
-              >
+              <DropdownMenuItem onSelect={() => setConfirmAction('repair')}>
                 Repair
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -565,9 +557,7 @@ function BottleCard({ bottle, onRefresh }: BottleCardProps) {
         </div>
       ) : null}
 
-      {error ? (
-        <p className="mt-1 text-xs text-destructive">{error}</p>
-      ) : null}
+      {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
 
       {/* Repair confirmation */}
       <AlertDialog
