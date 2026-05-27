@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type {
-  CiderDeckProfile,
-  HelperCategory,
-  HelperId,
-  ProfileStatus,
-} from '@/types/Profile'
+import type { ProfileStatus } from '@/types/Profile'
 
 export const STATUS_OPTIONS: ProfileStatus[] = [
   'unconfigured',
@@ -19,13 +14,6 @@ export const STATUS_OPTIONS: ProfileStatus[] = [
   'experimental',
   'broken',
 ]
-
-export interface FormProps<TProfile extends CiderDeckProfile> {
-  initial?: TProfile
-  onSubmit: (profile: TProfile) => void
-  helper: HelperId
-  category: HelperCategory
-}
 
 export const splitMultiline = (value: string): string[] =>
   value

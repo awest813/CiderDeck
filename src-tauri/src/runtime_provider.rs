@@ -128,6 +128,36 @@ pub trait RuntimeProvider: Send + Sync {
 // Wine provider
 // ============================================================================
 
+/// Validates a config that requires a target executable (Wine-compatible runtimes).
+fn wine_compatible_validate(config: &ProviderConfig) -> ProviderValidation {
+    let mut errors = Vec::new();
+    if config
+        .target_executable
+        .as_deref()
+        .map_or(true, str::is_empty)
+    {
+        errors.push("Target executable is required.".to_string());
+    }
+    ProviderValidation {
+        valid: errors.is_empty(),
+        errors,
+    }
+}
+
+/// Resolves the container/prefix path for Wine-compatible runtimes.
+fn wine_compatible_container_path(config: &ProviderConfig) -> Option<String> {
+    config.container_path.clone().filter(|s| !s.is_empty())
+}
+
+/// Builds env vars with WINEPREFIX injected from the container path.
+fn wine_prefix_env_vars(config: &ProviderConfig) -> HashMap<String, String> {
+    let mut env = config.env_vars.clone();
+    if let Some(prefix) = wine_compatible_container_path(config) {
+        env.entry("WINEPREFIX".to_string()).or_insert(prefix);
+    }
+    env
+}
+
 pub struct WineProvider;
 
 impl RuntimeProvider for WineProvider {
@@ -144,18 +174,7 @@ impl RuntimeProvider for WineProvider {
     }
 
     fn validate(&self, config: &ProviderConfig) -> ProviderValidation {
-        let mut errors = Vec::new();
-        if config
-            .target_executable
-            .as_deref()
-            .map_or(true, str::is_empty)
-        {
-            errors.push("Target executable is required.".to_string());
-        }
-        ProviderValidation {
-            valid: errors.is_empty(),
-            errors,
-        }
+        wine_compatible_validate(config)
     }
 
     fn executable_path(&self, config: &ProviderConfig) -> Option<String> {
@@ -169,15 +188,11 @@ impl RuntimeProvider for WineProvider {
     }
 
     fn container_path(&self, config: &ProviderConfig) -> Option<String> {
-        config.container_path.clone().filter(|s| !s.is_empty())
+        wine_compatible_container_path(config)
     }
 
     fn env_vars(&self, config: &ProviderConfig) -> HashMap<String, String> {
-        let mut env = config.env_vars.clone();
-        if let Some(prefix) = self.container_path(config) {
-            env.entry("WINEPREFIX".to_string()).or_insert(prefix);
-        }
-        env
+        wine_prefix_env_vars(config)
     }
 
     fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {
@@ -239,18 +254,7 @@ impl RuntimeProvider for CrossOverProvider {
     }
 
     fn validate(&self, config: &ProviderConfig) -> ProviderValidation {
-        let mut errors = Vec::new();
-        if config
-            .target_executable
-            .as_deref()
-            .map_or(true, str::is_empty)
-        {
-            errors.push("Target executable is required.".to_string());
-        }
-        ProviderValidation {
-            valid: errors.is_empty(),
-            errors,
-        }
+        wine_compatible_validate(config)
     }
 
     fn executable_path(&self, config: &ProviderConfig) -> Option<String> {
@@ -264,7 +268,7 @@ impl RuntimeProvider for CrossOverProvider {
     }
 
     fn container_path(&self, config: &ProviderConfig) -> Option<String> {
-        config.container_path.clone().filter(|s| !s.is_empty())
+        wine_compatible_container_path(config)
     }
 
     fn env_vars(&self, config: &ProviderConfig) -> HashMap<String, String> {
@@ -329,18 +333,7 @@ impl RuntimeProvider for WhiskyProvider {
     }
 
     fn validate(&self, config: &ProviderConfig) -> ProviderValidation {
-        let mut errors = Vec::new();
-        if config
-            .target_executable
-            .as_deref()
-            .map_or(true, str::is_empty)
-        {
-            errors.push("Target executable is required.".to_string());
-        }
-        ProviderValidation {
-            valid: errors.is_empty(),
-            errors,
-        }
+        wine_compatible_validate(config)
     }
 
     fn executable_path(&self, config: &ProviderConfig) -> Option<String> {
@@ -354,15 +347,11 @@ impl RuntimeProvider for WhiskyProvider {
     }
 
     fn container_path(&self, config: &ProviderConfig) -> Option<String> {
-        config.container_path.clone().filter(|s| !s.is_empty())
+        wine_compatible_container_path(config)
     }
 
     fn env_vars(&self, config: &ProviderConfig) -> HashMap<String, String> {
-        let mut env = config.env_vars.clone();
-        if let Some(prefix) = self.container_path(config) {
-            env.entry("WINEPREFIX".to_string()).or_insert(prefix);
-        }
-        env
+        wine_prefix_env_vars(config)
     }
 
     fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {

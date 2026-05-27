@@ -96,27 +96,10 @@ export function GameLibraryPage() {
 
   const [launching, setLaunching] = useState<string | null>(null)
 
-  const handleLaunch = async (game: Game) => {
-    if (game.profileIds.length === 0) return
-    const profile = profiles.find(p => p.id === game.profileIds[0])
-    if (!profile) return
-    setLaunching(game.id)
-    try {
-      const entry = await launchProfile(profile)
-      if (entry.exitCode !== null && entry.exitCode !== 0) {
-        toast.error(`Launch exited with code ${entry.exitCode}`, {
-          description: entry.stderr || undefined,
-        })
-      }
-    } catch {
-      toast.error('Failed to launch game')
-    } finally {
-      setLaunching(null)
-    }
-  }
-
-  const handleLaunchWithProfile = async (game: Game, profileId: string) => {
-    const profile = profiles.find(p => p.id === profileId)
+  const handleLaunch = async (game: Game, profileId?: string) => {
+    const id = profileId ?? game.profileIds[0]
+    if (!id) return
+    const profile = profiles.find(p => p.id === id)
     if (!profile) return
     setLaunching(game.id)
     try {
@@ -354,7 +337,7 @@ export function GameLibraryPage() {
             profiles={profiles}
             onUpdate={handleUpdateGame}
             onDelete={handleDeleteGame}
-            onLaunch={handleLaunchWithProfile}
+            onLaunch={handleLaunch}
           />
         ) : (
           <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center transition-colors hover:border-muted-foreground/25">

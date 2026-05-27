@@ -2,17 +2,16 @@
 
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
+import { ImportDialogFooter } from '@/components/ImportDialogFooter'
 import {
   useSteamDetection,
   useEpicDetection,
@@ -317,30 +316,14 @@ export function LauncherImportDialog({
           </div>
         )}
 
-        <DialogFooter className="flex-row-reverse">
-          <Button
-            type="button"
-            onClick={handleImport}
-            disabled={selectedCount === 0 || isLoading || isRefreshing}
-          >
-            Import{selectedCount > 0 ? ` (${selectedCount})` : ''}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleRefresh}
-            disabled={isLoading || isRefreshing}
-          >
-            Refresh
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-        </DialogFooter>
+        <ImportDialogFooter
+          onImport={handleImport}
+          onRefresh={handleRefresh}
+          onCancel={() => onOpenChange(false)}
+          selectedCount={selectedCount}
+          isLoading={isLoading}
+          isRefreshing={isRefreshing}
+        />
       </DialogContent>
     </Dialog>
   )
