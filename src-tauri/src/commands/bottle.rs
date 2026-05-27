@@ -4,13 +4,44 @@
 //!
 //! Scans the filesystem for existing Wine prefixes, Whisky bottles,
 //! CrossOver bottles, and GPTK prefixes. Provides commands for
-//! detecting, inspecting, creating, and deleting bottles.
+//! detecting, inspecting, creating, cloning, repairing, resetting,
+//! exporting, importing, and deleting bottles.
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+
+/// Sidecar filename stored inside each bottle directory.
+const SIDECAR_FILE: &str = ".ciderdeck-meta.json";
+
+// ============================================================================
+// Sidecar Metadata
+// ============================================================================
+
+/// Per-bottle metadata stored in a sidecar file inside the bottle directory.
+/// Survives detection scans and persists user notes and compatibility info.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+struct BottleSidecar {
+    notes: Option<String>,
+}
+
+fn read_bottle_sidecar(bottle_path: &Path) -> BottleSidecar {
+    let meta_path = bottle_path.join(SIDECAR_FILE);
+    fs::read_to_string(&meta_path)
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
+fn write_bottle_sidecar(bottle_path: &Path, sidecar: &BottleSidecar) -> Result<(), String> {
+    let meta_path = bottle_path.join(SIDECAR_FILE);
+    let json = serde_json::to_string_pretty(sidecar)
+        .map_err(|e| format!("Failed to serialize bottle metadata: {e}"))?;
+    fs::write(&meta_path, json).map_err(|e| format!("Failed to write bottle metadata: {e}"))?;
+    Ok(())
+}
 
 // ============================================================================
 // Data Types
@@ -275,6 +306,7 @@ fn detect_wine_bottle(path: &Path, name: &str) -> Bottle {
     let storage = dir_size(path);
 
     let runtime_version = detect_wine_version(path, "wine");
+    let sidecar = read_bottle_sidecar(path);
 
     let id = format!("wine-{}", name.replace(['/', '\\', ' '], "-"));
 
@@ -288,7 +320,7 @@ fn detect_wine_bottle(path: &Path, name: &str) -> Bottle {
         windows_version,
         installed_components: components,
         storage_bytes: storage,
-        notes: None,
+        notes: sidecar.notes,
         health,
     }
 }
@@ -378,6 +410,7 @@ fn scan_whisky_bottles() -> Vec<Bottle> {
                 };
 
                 let id = format!("whisky-{}", name.replace(['/', '\\', ' '], "-"));
+                let sidecar = read_bottle_sidecar(&path);
 
                 bottles.push(Bottle {
                     id,
@@ -389,7 +422,7 @@ fn scan_whisky_bottles() -> Vec<Bottle> {
                     windows_version,
                     installed_components: components,
                     storage_bytes: storage,
-                    notes: None,
+                    notes: sidecar.notes,
                     health: if valid {
                         BottleHealth::Good
                     } else {
@@ -447,6 +480,7 @@ fn scan_crossover_bottles() -> Vec<Bottle> {
                 };
 
                 let id = format!("crossover-{}", name.replace(['/', '\\', ' '], "-"));
+                let sidecar = read_bottle_sidecar(&path);
 
                 bottles.push(Bottle {
                     id,
@@ -458,7 +492,7 @@ fn scan_crossover_bottles() -> Vec<Bottle> {
                     windows_version,
                     installed_components: components,
                     storage_bytes: storage,
-                    notes: None,
+                    notes: sidecar.notes,
                     health: BottleHealth::Good,
                 });
             }
@@ -498,6 +532,7 @@ fn scan_gptk_bottles() -> Vec<Bottle> {
             let storage = dir_size(candidate);
 
             let id = format!("gptk-{}", name.replace(['/', '\\', ' '], "-"));
+            let sidecar = read_bottle_sidecar(candidate);
 
             bottles.push(Bottle {
                 id,
@@ -509,7 +544,7 @@ fn scan_gptk_bottles() -> Vec<Bottle> {
                 windows_version,
                 installed_components: components,
                 storage_bytes: storage,
-                notes: None,
+                notes: sidecar.notes,
                 health: BottleHealth::Good,
             });
         }
@@ -851,6 +886,7 @@ pub async fn get_bottle_meta(bottle_path: String) -> Result<Bottle, String> {
     };
 
     let id = format!("{runtime}-{}", name.replace(['/', '\\', ' '], "-"));
+    let sidecar = read_bottle_sidecar(path);
 
     Ok(Bottle {
         id,
@@ -862,7 +898,7 @@ pub async fn get_bottle_meta(bottle_path: String) -> Result<Bottle, String> {
         windows_version,
         installed_components: components,
         storage_bytes: storage,
-        notes: None,
+        notes: sidecar.notes,
         health,
     })
 }
@@ -964,12 +1000,383 @@ pub async fn delete_bottle(bottle_path: String) -> Result<String, String> {
 }
 
 // ============================================================================
-// Tests
+// Clone / Repair / Reset / Export / Import / Notes
 // ============================================================================
+
+/// Recursively copy a directory tree from `src` to `dst`.
+fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), String> {
+    fs::create_dir_all(dst).map_err(|e| format!("Failed to create directory: {e}"))?;
+    for entry in
+        fs::read_dir(src).map_err(|e| format!("Failed to read source directory: {e}"))?
+    {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {e}"))?;
+        let src_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
+
+        if src_path.is_symlink() {
+            // Re-create symlinks instead of following them to avoid infinite loops
+            if let Ok(target) = fs::read_link(&src_path) {
+                #[cfg(unix)]
+                std::os::unix::fs::symlink(target, &dst_path)
+                    .map_err(|e| format!("Failed to create symlink: {e}"))?;
+                #[cfg(not(unix))]
+                return Err("Symlinks are only supported on Unix".to_string());
+            }
+        } else if src_path.is_dir() {
+            copy_dir_all(&src_path, &dst_path)?;
+        } else {
+            fs::copy(&src_path, &dst_path)
+                .map_err(|e| format!("Failed to copy file: {e}"))?;
+        }
+    }
+    Ok(())
+}
+
+/// Return the wine binary path for a given runtime identifier.
+fn wine_bin_for_runtime(runtime: &str) -> &'static str {
+    match runtime {
+        "whisky" => "/Applications/Whisky.app/Contents/MacOS/wine64",
+        "crossover" => {
+            "/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
+        }
+        _ => "wine",
+    }
+}
+
+/// Clone an existing bottle to a new location.
+/// Preserves all files including the CiderDeck sidecar.
+#[tauri::command]
+#[specta::specta]
+pub async fn clone_bottle(
+    source_path: String,
+    dest_path: String,
+    name: String,
+) -> Result<Bottle, String> {
+    log::info!("Cloning bottle from {source_path} to {dest_path}");
+
+    let src = Path::new(&source_path);
+    let dst = PathBuf::from(&dest_path);
+
+    let canonical_src = fs::canonicalize(src).map_err(|_| "Source bottle path does not exist.".to_string())?;
+
+    if !is_valid_prefix(&canonical_src) {
+        return Err("Source path does not appear to be a valid Wine prefix.".to_string());
+    }
+
+    if dst.exists() {
+        return Err("Destination path already exists.".to_string());
+    }
+
+    copy_dir_all(&canonical_src, &dst)?;
+
+    // Detect metadata from the clone
+    let valid = is_valid_prefix(&dst);
+    let health = if valid {
+        BottleHealth::Good
+    } else if dst.join("drive_c").is_dir() {
+        BottleHealth::Warning
+    } else {
+        BottleHealth::Broken
+    };
+
+    let path_str = canonical_src.to_string_lossy();
+    let runtime = if path_str.contains("Whisky") {
+        "whisky"
+    } else if path_str.contains("CrossOver") {
+        "crossover"
+    } else if path_str.contains("gptk") || path_str.contains("GPTK") {
+        "gptk"
+    } else {
+        "wine"
+    };
+
+    let id = format!("{runtime}-{}", name.replace(['/', '\\', ' '], "-"));
+    let sidecar = read_bottle_sidecar(&dst);
+
+    log::info!("Bottle cloned successfully: {id} at {dest_path}");
+
+    Ok(Bottle {
+        id,
+        name,
+        runtime: runtime.to_string(),
+        path: dest_path,
+        runtime_version: None,
+        architecture: get_prefix_architecture(&dst),
+        windows_version: get_prefix_windows_version(&dst),
+        installed_components: get_installed_components(&dst),
+        storage_bytes: dir_size(&dst),
+        notes: sidecar.notes,
+        health,
+    })
+}
+
+/// Repair a bottle by running `wineboot --update`.
+/// This re-initializes Wine internals without destroying user data.
+#[tauri::command]
+#[specta::specta]
+pub async fn repair_bottle(bottle_path: String, runtime: String) -> Result<(), String> {
+    log::info!("Repairing {runtime} bottle at: {bottle_path}");
+
+    let path = Path::new(&bottle_path);
+    if !path.is_dir() {
+        return Err("Bottle path does not exist.".to_string());
+    }
+
+    let wine_bin = wine_bin_for_runtime(&runtime);
+
+    let output = Command::new(wine_bin)
+        .env("WINEPREFIX", &bottle_path)
+        .arg("wineboot")
+        .arg("--update")
+        .output()
+        .map_err(|e| format!("Failed to run wineboot: {e}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Repair failed: {stderr}"));
+    }
+
+    log::info!("Bottle repaired successfully: {bottle_path}");
+    Ok(())
+}
+
+/// Reset a bottle back to a clean state.
+/// Removes the Windows filesystem and registry, then reinitializes.
+/// The CiderDeck sidecar (notes) is preserved across the reset.
+#[tauri::command]
+#[specta::specta]
+pub async fn reset_bottle(
+    bottle_path: String,
+    name: String,
+    runtime: String,
+) -> Result<Bottle, String> {
+    log::info!("Resetting {runtime} bottle at: {bottle_path}");
+
+    let path = PathBuf::from(&bottle_path);
+    if !path.is_dir() {
+        return Err("Bottle path does not exist.".to_string());
+    }
+
+    let canonical = fs::canonicalize(&path)
+        .map_err(|_| "Failed to resolve bottle path.".to_string())?;
+
+    if !is_valid_prefix(&canonical) {
+        return Err("Path does not appear to be a valid Wine prefix.".to_string());
+    }
+
+    // Preserve notes before wipe
+    let sidecar = read_bottle_sidecar(&canonical);
+
+    // Remove the core prefix directories and registry files
+    let items_to_remove = [
+        canonical.join("drive_c"),
+        canonical.join("system.reg"),
+        canonical.join("user.reg"),
+        canonical.join("userdef.reg"),
+        canonical.join(".update-timestamp"),
+    ];
+
+    for item in &items_to_remove {
+        if item.is_dir() {
+            fs::remove_dir_all(item).map_err(|e| format!("Failed to remove {item:?}: {e}"))?;
+        } else if item.exists() {
+            fs::remove_file(item).map_err(|e| format!("Failed to remove {item:?}: {e}"))?;
+        }
+    }
+
+    // Reinitialize the prefix
+    let wine_bin = wine_bin_for_runtime(&runtime);
+
+    let output = Command::new(wine_bin)
+        .env("WINEPREFIX", &bottle_path)
+        .arg("wineboot")
+        .arg("-i")
+        .output()
+        .map_err(|e| format!("Failed to run wineboot: {e}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Reset initialization failed: {stderr}"));
+    }
+
+    if !is_valid_prefix(&canonical) {
+        return Err("Reset completed but prefix structure is incomplete.".to_string());
+    }
+
+    // Restore preserved notes
+    write_bottle_sidecar(&canonical, &sidecar)?;
+
+    let id = format!("{runtime}-{}", name.replace(['/', '\\', ' '], "-"));
+
+    log::info!("Bottle reset successfully: {id}");
+
+    Ok(Bottle {
+        id,
+        name,
+        runtime,
+        path: bottle_path,
+        runtime_version: None,
+        architecture: Some("win64".to_string()),
+        windows_version: Some("win10".to_string()),
+        installed_components: Vec::new(),
+        storage_bytes: dir_size(&canonical),
+        notes: sidecar.notes,
+        health: BottleHealth::Good,
+    })
+}
+
+/// Export a bottle as a compressed tar archive (.tar.gz).
+/// Returns the path of the created archive.
+#[tauri::command]
+#[specta::specta]
+pub async fn export_bottle(bottle_path: String, archive_path: String) -> Result<String, String> {
+    log::info!("Exporting bottle at {bottle_path} to {archive_path}");
+
+    let src = Path::new(&bottle_path);
+    if !src.is_dir() {
+        return Err("Bottle path does not exist.".to_string());
+    }
+
+    let canonical = fs::canonicalize(src).map_err(|_| "Failed to resolve bottle path.".to_string())?;
+
+    if !is_valid_prefix(&canonical) {
+        return Err("Path does not appear to be a valid Wine prefix.".to_string());
+    }
+
+    let bottle_dir = canonical
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .ok_or_else(|| "Failed to determine bottle directory name.".to_string())?;
+
+    let parent_dir = canonical
+        .parent()
+        .ok_or_else(|| "Failed to determine parent directory.".to_string())?;
+
+    let output = Command::new("tar")
+        .args([
+            "-czf",
+            &archive_path,
+            "-C",
+            &parent_dir.to_string_lossy(),
+            &bottle_dir,
+        ])
+        .output()
+        .map_err(|e| format!("Failed to run tar: {e}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Export failed: {stderr}"));
+    }
+
+    log::info!("Bottle exported successfully to: {archive_path}");
+    Ok(archive_path)
+}
+
+/// Import a bottle from a compressed tar archive (.tar.gz).
+/// Extracts the archive to `dest_path` and validates the result.
+#[tauri::command]
+#[specta::specta]
+pub async fn import_bottle(
+    archive_path: String,
+    dest_path: String,
+    name: String,
+) -> Result<Bottle, String> {
+    log::info!("Importing bottle from {archive_path} to {dest_path}");
+
+    let archive = Path::new(&archive_path);
+    if !archive.exists() {
+        return Err("Archive file does not exist.".to_string());
+    }
+
+    let dest = PathBuf::from(&dest_path);
+    if dest.exists() {
+        return Err("Destination path already exists.".to_string());
+    }
+
+    fs::create_dir_all(&dest).map_err(|e| format!("Failed to create destination directory: {e}"))?;
+
+    let output = Command::new("tar")
+        .args([
+            "-xzf",
+            &archive_path,
+            "-C",
+            &dest_path,
+            "--strip-components=1",
+        ])
+        .output()
+        .map_err(|e| format!("Failed to run tar: {e}"))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        // Clean up on failure
+        let _ = fs::remove_dir_all(&dest);
+        return Err(format!("Import failed: {stderr}"));
+    }
+
+    if !is_valid_prefix(&dest) {
+        let _ = fs::remove_dir_all(&dest);
+        return Err(
+            "Archive does not contain a valid Wine prefix (missing drive_c or system.reg)."
+                .to_string(),
+        );
+    }
+
+    let health = BottleHealth::Good;
+    let sidecar = read_bottle_sidecar(&dest);
+
+    let id = format!("wine-{}", name.replace(['/', '\\', ' '], "-"));
+
+    log::info!("Bottle imported successfully: {id} at {dest_path}");
+
+    Ok(Bottle {
+        id,
+        name,
+        runtime: "wine".to_string(),
+        path: dest_path,
+        runtime_version: None,
+        architecture: get_prefix_architecture(&dest),
+        windows_version: get_prefix_windows_version(&dest),
+        installed_components: get_installed_components(&dest),
+        storage_bytes: dir_size(&dest),
+        notes: sidecar.notes,
+        health,
+    })
+}
+
+/// Persist user-provided notes for a bottle.
+/// Writes to a `.ciderdeck-meta.json` sidecar file inside the bottle directory.
+#[tauri::command]
+#[specta::specta]
+pub async fn save_bottle_notes(bottle_path: String, notes: String) -> Result<(), String> {
+    log::debug!("Saving notes for bottle at: {bottle_path}");
+
+    let path = Path::new(&bottle_path);
+    if !path.is_dir() {
+        return Err("Bottle path does not exist.".to_string());
+    }
+
+    let sidecar = BottleSidecar {
+        notes: if notes.trim().is_empty() {
+            None
+        } else {
+            Some(notes)
+        },
+    };
+
+    write_bottle_sidecar(path, &sidecar)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    // Helper: build a minimal valid Wine prefix in a temp dir
+    fn make_fake_prefix(dir: &Path) {
+        fs::create_dir_all(dir.join("drive_c")).unwrap();
+        fs::write(dir.join("system.reg"), "").unwrap();
+    }
 
     #[test]
     fn test_is_valid_prefix_no_dir() {
@@ -993,5 +1400,58 @@ mod tests {
         let bottles = scan_wine_prefixes();
         // On a test machine without Wine, this should return empty vec (not panic)
         assert!(bottles.is_empty() || bottles.iter().all(|b| b.runtime == "wine"));
+    }
+
+    #[test]
+    fn test_sidecar_roundtrip() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path();
+
+        // Reading from a directory with no sidecar returns empty default
+        let initial = read_bottle_sidecar(path);
+        assert!(initial.notes.is_none());
+
+        // Write notes
+        let sidecar = BottleSidecar {
+            notes: Some("test notes".to_string()),
+        };
+        write_bottle_sidecar(path, &sidecar).unwrap();
+
+        // Read them back
+        let loaded = read_bottle_sidecar(path);
+        assert_eq!(loaded.notes.as_deref(), Some("test notes"));
+    }
+
+    #[test]
+    fn test_copy_dir_all() {
+        let tmp = TempDir::new().unwrap();
+        let src = tmp.path().join("src");
+        let dst = tmp.path().join("dst");
+        make_fake_prefix(&src);
+
+        copy_dir_all(&src, &dst).unwrap();
+
+        assert!(dst.join("drive_c").is_dir());
+        assert!(dst.join("system.reg").exists());
+    }
+
+    #[test]
+    fn test_wine_bin_for_runtime() {
+        assert_eq!(wine_bin_for_runtime("wine"), "wine");
+        assert!(wine_bin_for_runtime("whisky").contains("Whisky"));
+        assert!(wine_bin_for_runtime("crossover").contains("CrossOver"));
+        assert_eq!(wine_bin_for_runtime("gptk"), "wine");
+    }
+
+    #[test]
+    fn test_is_valid_prefix_requires_system_reg() {
+        let tmp = TempDir::new().unwrap();
+        // drive_c present but no system.reg → not valid
+        fs::create_dir_all(tmp.path().join("drive_c")).unwrap();
+        assert!(!is_valid_prefix(tmp.path()));
+
+        // Add system.reg → valid
+        fs::write(tmp.path().join("system.reg"), "").unwrap();
+        assert!(is_valid_prefix(tmp.path()));
     }
 }
