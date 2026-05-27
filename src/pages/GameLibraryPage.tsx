@@ -354,14 +354,14 @@ export function GameLibraryPage() {
       </aside>
 
       <GameImportDialog
-        key={importKey}
+        key={`import-${importKey}`}
         open={importOpen}
         onOpenChange={setImportOpen}
         onImport={handleImport}
       />
 
       <DetectedGamesDialog
-        key={detectKey}
+        key={`detect-${detectKey}`}
         open={detectOpen}
         onOpenChange={setDetectOpen}
         detectedGames={detectedGames}
@@ -376,7 +376,7 @@ export function GameLibraryPage() {
       />
 
       <LauncherImportDialog
-        key={launcherKey}
+        key={`launcher-${launcherKey}`}
         open={launcherOpen}
         onOpenChange={setLauncherOpen}
         existingInstallPaths={existingInstallPaths}
