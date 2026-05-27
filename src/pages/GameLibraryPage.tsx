@@ -7,6 +7,7 @@ import { GameCard } from '@/components/GameCard'
 import { GameDetailPanel } from '@/components/GameDetailPanel'
 import { GameImportDialog } from '@/components/GameImportDialog'
 import { DetectedGamesDialog } from '@/components/DetectedGamesDialog'
+import { LauncherImportDialog } from '@/components/LauncherImportDialog'
 import { Spinner } from '@/components/ui/spinner'
 import {
   useGameDetection,
@@ -38,6 +39,8 @@ export function GameLibraryPage() {
   const [filterTag, setFilterTag] = useState<string | null>(null)
   const [detectOpen, setDetectOpen] = useState(false)
   const [detectKey, setDetectKey] = useState(0)
+  const [launcherOpen, setLauncherOpen] = useState(false)
+  const [launcherKey, setLauncherKey] = useState(0)
 
   const { data: games = [], isLoading: gamesLoading } = useGameLibrary()
   const { data: profiles = [] } = useProfileStore()
@@ -56,8 +59,26 @@ export function GameLibraryPage() {
     ? games.filter(g => g.tags.includes(filterTag))
     : games
 
+  const existingInstallPaths = new Set(
+    games
+      .map(g => g.installPath?.toLowerCase())
+      .filter((p): p is string => p != null)
+  )
+  const existingTitles = new Set(games.map(g => g.title.toLowerCase()))
+
   const handleImport = (gameImport: GameImport) => {
     importGame.mutate(gameImport)
+  }
+
+  const handleImportMany = (imports: GameImport[]) => {
+    for (const gameImport of imports) {
+      importGame.mutate(gameImport)
+    }
+    if (imports.length > 0) {
+      toast.success(
+        `Importing ${imports.length} game${imports.length === 1 ? '' : 's'}`
+      )
+    }
   }
 
   const handleUpdateGame = (game: Game) => {
@@ -92,22 +113,33 @@ export function GameLibraryPage() {
     }
   }
 
+  const handleLaunchWithProfile = async (game: Game, profileId: string) => {
+    const profile = profiles.find(p => p.id === profileId)
+    if (!profile) return
+    setLaunching(game.id)
+    try {
+      const entry = await launchProfile(profile)
+      if (entry.exitCode !== null && entry.exitCode !== 0) {
+        toast.error(`Launch exited with code ${entry.exitCode}`, {
+          description: entry.stderr || undefined,
+        })
+      }
+    } catch {
+      toast.error('Failed to launch game')
+    } finally {
+      setLaunching(null)
+    }
+  }
+
   const handleImportDetected = (
     detected: DetectedGame[],
     _source: GameImportSource
   ) => {
-    const existingPaths = new Set(
-      games
-        .map(g => g.installPath?.toLowerCase())
-        .filter((p): p is string => p != null)
-    )
-    const existingTitles = new Set(games.map(g => g.title.toLowerCase()))
-
     const toImport: GameImport[] = []
     for (const g of detected) {
       const exeLower = g.exe_path.toLowerCase()
       const titleLower = g.name.toLowerCase()
-      if (existingPaths.has(exeLower) || existingTitles.has(titleLower)) {
+      if (existingInstallPaths.has(exeLower) || existingTitles.has(titleLower)) {
         continue
       }
       toImport.push({
@@ -164,6 +196,16 @@ export function GameLibraryPage() {
             variant="secondary"
           >
             + Auto-Detect
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setLauncherKey(k => k + 1)
+              setLauncherOpen(true)
+            }}
+            variant="secondary"
+          >
+            + From Launchers
           </Button>
           <Button
             type="button"
@@ -305,6 +347,7 @@ export function GameLibraryPage() {
             profiles={profiles}
             onUpdate={handleUpdateGame}
             onDelete={handleDeleteGame}
+            onLaunch={handleLaunchWithProfile}
           />
         ) : (
           <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center transition-colors hover:border-muted-foreground/25">
@@ -340,6 +383,15 @@ export function GameLibraryPage() {
             onSuccess: () => setDetectKey(k => k + 1),
           })
         }
+      />
+
+      <LauncherImportDialog
+        key={launcherKey}
+        open={launcherOpen}
+        onOpenChange={setLauncherOpen}
+        existingInstallPaths={existingInstallPaths}
+        existingTitles={existingTitles}
+        onImport={handleImportMany}
       />
     </main>
   )

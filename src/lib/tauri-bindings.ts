@@ -27,6 +27,7 @@ export type {
   Bottle,
   BottleHealth,
   DetectedGame,
+  EpicGame,
   Game,
   GameImport,
   GameImportSource,
@@ -35,6 +36,7 @@ export type {
   ProfileLogEntry,
   RecoveryError,
   RuntimeInfo,
+  SteamGame,
 } from './bindings'
 
 /**

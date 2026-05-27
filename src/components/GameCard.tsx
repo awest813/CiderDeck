@@ -31,6 +31,8 @@ const importSourceLabel: Record<string, string> = {
   Manual: 'Manual',
   AppBundle: 'App Bundle',
   ExeMsi: 'EXE/MSI',
+  SteamLibrary: 'Steam',
+  EpicLibrary: 'Epic',
 }
 
 export function GameCard({

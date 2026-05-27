@@ -37,6 +37,16 @@ const importSources: {
     description: 'Windows executable or installer',
   },
   { value: 'AppBundle', label: 'App Bundle', description: 'macOS .app bundle' },
+  {
+    value: 'SteamLibrary',
+    label: 'Steam',
+    description: 'Steam install folder',
+  },
+  {
+    value: 'EpicLibrary',
+    label: 'Epic',
+    description: 'Epic Games install folder',
+  },
 ]
 
 export function GameImportDialog({
@@ -95,7 +105,7 @@ export function GameImportDialog({
 
           <div className="space-y-2">
             <Label>Import source</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {importSources.map(s => (
                 <button
                   key={s.value}
@@ -116,7 +126,10 @@ export function GameImportDialog({
             </div>
           </div>
 
-          {(source === 'ExeMsi' || source === 'AppBundle') && (
+          {(source === 'ExeMsi' ||
+            source === 'AppBundle' ||
+            source === 'SteamLibrary' ||
+            source === 'EpicLibrary') && (
             <div className="space-y-2">
               <Label htmlFor="install-path">Install path</Label>
               <Input
@@ -126,7 +139,9 @@ export function GameImportDialog({
                 placeholder={
                   source === 'ExeMsi'
                     ? '/path/to/game.exe'
-                    : '/Applications/Game.app'
+                    : source === 'AppBundle'
+                      ? '/Applications/Game.app'
+                      : '/path/to/install/folder'
                 }
               />
             </div>
