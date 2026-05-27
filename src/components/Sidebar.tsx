@@ -27,10 +27,6 @@ export function Sidebar({
         <h1 className="mt-3 text-2xl font-bold tracking-tight">
           Open Game Workbench
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Compatibility layers, source ports, emulators, and recompilation
-          projects in one local library.
-        </p>
       </div>
 
       <nav className="flex flex-col gap-1">
@@ -77,12 +73,6 @@ export function Sidebar({
           Settings
         </Button>
       </nav>
-
-      <div className="mt-auto rounded-xl border bg-card p-3 text-xs leading-relaxed text-muted-foreground shadow-sm">
-        Profiles and games are persisted through the native Rust backend. Native
-        launching uses structured commands — no shells, no string concatenation.
-        Bring your own legally obtained game data.
-      </div>
     </aside>
   )
 }

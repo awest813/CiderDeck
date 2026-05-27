@@ -144,7 +144,12 @@ export function ProfileCard({
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button type="button" size="sm" variant="ghost">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
                 Delete
               </Button>
             </AlertDialogTrigger>

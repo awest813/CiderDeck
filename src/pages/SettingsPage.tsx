@@ -67,7 +67,7 @@ export function SettingsPage() {
           <div className="pt-2">
             <Button
               type="button"
-              variant="link"
+              variant="ghost"
               size="sm"
               onClick={() => refetch()}
               disabled={loading}
