@@ -78,6 +78,7 @@ export function GameImportDialog({
         .filter(Boolean),
       notes: null,
       profileIds: [],
+      extraArgs: [],
     })
 
     setTitle('')

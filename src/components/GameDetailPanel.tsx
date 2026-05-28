@@ -41,6 +41,9 @@ export function GameDetailPanel({
   const [notes, setNotes] = useState(game.notes ?? '')
   const [artworkPath, setArtworkPath] = useState(game.artworkPath ?? '')
   const [tagInput, setTagInput] = useState(game.tags.join(', '))
+  const [extraArgsInput, setExtraArgsInput] = useState(
+    game.extraArgs.join(' ')
+  )
 
   const linkedProfiles = profiles.filter(p => game.profileIds.includes(p.id))
   const unlinkedProfiles = profiles.filter(p => !game.profileIds.includes(p.id))
@@ -54,6 +57,10 @@ export function GameDetailPanel({
       tags: tagInput
         .split(',')
         .map(t => t.trim())
+        .filter(Boolean),
+      extraArgs: extraArgsInput
+        .split(' ')
+        .map(a => a.trim())
         .filter(Boolean),
     })
     setEditing(false)
@@ -94,6 +101,7 @@ export function GameDetailPanel({
                   setNotes(game.notes ?? '')
                   setArtworkPath(game.artworkPath ?? '')
                   setTagInput(game.tags.join(', '))
+                  setExtraArgsInput(game.extraArgs.join(' '))
                 }
                 setEditing(!editing)
               }}
@@ -154,6 +162,17 @@ export function GameDetailPanel({
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="edit-extra-args">
+                  Extra launch arguments (space-separated)
+                </Label>
+                <Input
+                  id="edit-extra-args"
+                  value={extraArgsInput}
+                  onChange={e => setExtraArgsInput(e.target.value)}
+                  placeholder="-windowed -nosound"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="edit-notes">Notes</Label>
                 <Textarea
                   id="edit-notes"
@@ -183,6 +202,16 @@ export function GameDetailPanel({
                       {tag}
                     </Badge>
                   ))}
+                </div>
+              ) : null}
+              {game.extraArgs.length > 0 ? (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Extra launch args
+                  </p>
+                  <p className="truncate font-mono text-xs text-muted-foreground">
+                    {game.extraArgs.join(' ')}
+                  </p>
                 </div>
               ) : null}
               {game.notes ? (

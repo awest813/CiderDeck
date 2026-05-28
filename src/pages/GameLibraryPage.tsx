@@ -103,7 +103,7 @@ export function GameLibraryPage() {
     if (!profile) return
     setLaunching(game.id)
     try {
-      const entry = await launchProfile(profile)
+      const entry = await launchProfile(profile, game.extraArgs)
       if (entry.exitCode !== null && entry.exitCode !== 0) {
         toast.error(`Launch exited with code ${entry.exitCode}`, {
           description: entry.stderr || undefined,
@@ -138,6 +138,7 @@ export function GameLibraryPage() {
         installPath: g.exe_path,
         artworkPath: null,
         importSource: 'ExeMsi',
+        extraArgs: [],
       })
     }
 

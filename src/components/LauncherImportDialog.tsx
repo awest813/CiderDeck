@@ -101,6 +101,7 @@ export function LauncherImportDialog({
           tags: ['steam'],
           notes: null,
           profileIds: [],
+          extraArgs: [],
         })
       }
     } else if (tab === 'epic') {
@@ -114,6 +115,7 @@ export function LauncherImportDialog({
           tags: ['epic'],
           notes: null,
           profileIds: [],
+          extraArgs: [],
         })
       }
     } else {
@@ -127,6 +129,7 @@ export function LauncherImportDialog({
           tags: ['gog'],
           notes: null,
           profileIds: [],
+          extraArgs: [],
         })
       }
     }

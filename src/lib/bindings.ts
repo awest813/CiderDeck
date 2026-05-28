@@ -452,7 +452,7 @@ export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi" | "SteamLibrary
 /**
  * A game entry in the library.
  */
-export type Game = { id: string; title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[]; createdAt: string; updatedAt: string }
+export type Game = { id: string; title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[]; extraArgs: string[]; createdAt: string; updatedAt: string }
 /**
  * A game detected inside a bottle or prefix.
  */
@@ -460,7 +460,7 @@ export type DetectedGame = { name: string; exe_path: string; bottle_id: string; 
 /**
  * Data needed to import a new game into the library.
  */
-export type GameImport = { title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[] }
+export type GameImport = { title: string; importSource: GameImportSource; installPath: string | null; artworkPath: string | null; tags: string[]; notes: string | null; profileIds: string[]; extraArgs: string[] }
 /**
  * A game found in a Steam library.
  */

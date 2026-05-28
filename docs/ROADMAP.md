@@ -72,12 +72,17 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 - Multi-profile launch picker in `GameDetailPanel` (single button or "Launch with…" dropdown)
 - `SteamLibrary` / `EpicLibrary` labels in `GameCard` and `GameImportDialog`
 
+**Phase C** ✅ Complete — GOG Galaxy detection and per-game launch options:
+
+- GOG Galaxy detection (`detect_gog_games`) — scans `/Applications`, `~/Applications`, and `~/GOG Games` for `goggame-*.info` marker files
+- `GogLibrary` import source and GOG tab in `LauncherImportDialog`
+- `useGogDetection` / `useRefreshGog` TanStack Query hooks
+- `extraArgs` per-game extra launch arguments — stored on `Game`, editable in `GameDetailPanel`, appended to the profile's args at launch time
+
 Remaining for v0.4 (future iterations):
 
-- GOG Galaxy detection
 - Portable game onboarding wizard
 - Install flows for installer-based games
-- Per-game launch options beyond profile selection
 
 ## v0.5 — Proton-Style Convenience
 
