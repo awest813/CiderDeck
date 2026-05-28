@@ -158,6 +158,54 @@ fn wine_prefix_env_vars(config: &ProviderConfig) -> HashMap<String, String> {
     env
 }
 
+fn runtime_executable_or_default(config: &ProviderConfig, default_executable: &str) -> String {
+    config
+        .runtime_executable
+        .clone()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| default_executable.to_string())
+}
+
+fn required_target_executable(
+    config: &ProviderConfig,
+    provider_name: &str,
+) -> Result<String, String> {
+    config
+        .target_executable
+        .as_deref()
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+        .ok_or_else(|| format!("{provider_name}: target executable is required."))
+}
+
+fn wine_like_launch_args(config: &ProviderConfig) -> Vec<String> {
+    let mut args = Vec::new();
+    if let Some(exe) = config
+        .target_executable
+        .as_deref()
+        .filter(|s| !s.is_empty())
+    {
+        args.push(exe.to_string());
+    }
+    args.extend(config.launch_args.clone());
+    args
+}
+
+fn build_wine_like_launch_command(
+    config: &ProviderConfig,
+    provider_name: &str,
+    default_executable: &str,
+    env: HashMap<String, String>,
+) -> Result<LaunchCommand, String> {
+    let _ = required_target_executable(config, provider_name)?;
+
+    Ok(LaunchCommand {
+        program: runtime_executable_or_default(config, default_executable),
+        args: wine_like_launch_args(config),
+        env,
+    })
+}
+
 pub struct WineProvider;
 
 impl RuntimeProvider for WineProvider {
@@ -178,13 +226,7 @@ impl RuntimeProvider for WineProvider {
     }
 
     fn executable_path(&self, config: &ProviderConfig) -> Option<String> {
-        Some(
-            config
-                .runtime_executable
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or_else(|| "wine".to_string()),
-        )
+        Some(runtime_executable_or_default(config, "wine"))
     }
 
     fn container_path(&self, config: &ProviderConfig) -> Option<String> {
@@ -196,37 +238,11 @@ impl RuntimeProvider for WineProvider {
     }
 
     fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {
-        let mut args = Vec::new();
-        if let Some(exe) = config
-            .target_executable
-            .as_deref()
-            .filter(|s| !s.is_empty())
-        {
-            args.push(exe.to_string());
-        }
-        args.extend(config.launch_args.clone());
-        args
+        wine_like_launch_args(config)
     }
 
     fn build_launch_command(&self, config: &ProviderConfig) -> Result<LaunchCommand, String> {
-        let target = config
-            .target_executable
-            .as_deref()
-            .filter(|s| !s.is_empty())
-            .ok_or("Wine: target executable is required.")?;
-
-        let program = self
-            .executable_path(config)
-            .unwrap_or_else(|| "wine".to_string());
-
-        let mut args = vec![target.to_string()];
-        args.extend(config.launch_args.clone());
-
-        Ok(LaunchCommand {
-            program,
-            args,
-            env: self.env_vars(config),
-        })
+        build_wine_like_launch_command(config, "Wine", "wine", self.env_vars(config))
     }
 }
 
@@ -258,13 +274,10 @@ impl RuntimeProvider for CrossOverProvider {
     }
 
     fn executable_path(&self, config: &ProviderConfig) -> Option<String> {
-        Some(
-            config
-                .runtime_executable
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or_else(|| CROSSOVER_DEFAULT_WINE.to_string()),
-        )
+        Some(runtime_executable_or_default(
+            config,
+            CROSSOVER_DEFAULT_WINE,
+        ))
     }
 
     fn container_path(&self, config: &ProviderConfig) -> Option<String> {
@@ -337,13 +350,7 @@ impl RuntimeProvider for WhiskyProvider {
     }
 
     fn executable_path(&self, config: &ProviderConfig) -> Option<String> {
-        Some(
-            config
-                .runtime_executable
-                .clone()
-                .filter(|s| !s.is_empty())
-                .unwrap_or_else(|| WHISKY_DEFAULT_WINE.to_string()),
-        )
+        Some(runtime_executable_or_default(config, WHISKY_DEFAULT_WINE))
     }
 
     fn container_path(&self, config: &ProviderConfig) -> Option<String> {
@@ -355,37 +362,11 @@ impl RuntimeProvider for WhiskyProvider {
     }
 
     fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {
-        let mut args = Vec::new();
-        if let Some(exe) = config
-            .target_executable
-            .as_deref()
-            .filter(|s| !s.is_empty())
-        {
-            args.push(exe.to_string());
-        }
-        args.extend(config.launch_args.clone());
-        args
+        wine_like_launch_args(config)
     }
 
     fn build_launch_command(&self, config: &ProviderConfig) -> Result<LaunchCommand, String> {
-        let target = config
-            .target_executable
-            .as_deref()
-            .filter(|s| !s.is_empty())
-            .ok_or("Whisky: target executable is required.")?;
-
-        let program = self
-            .executable_path(config)
-            .unwrap_or_else(|| WHISKY_DEFAULT_WINE.to_string());
-
-        let mut args = vec![target.to_string()];
-        args.extend(config.launch_args.clone());
-
-        Ok(LaunchCommand {
-            program,
-            args,
-            env: self.env_vars(config),
-        })
+        build_wine_like_launch_command(config, "Whisky", WHISKY_DEFAULT_WINE, self.env_vars(config))
     }
 }
 
