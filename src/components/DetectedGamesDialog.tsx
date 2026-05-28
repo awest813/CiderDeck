@@ -2,17 +2,16 @@
 
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
+import { ImportDialogFooter } from '@/components/ImportDialogFooter'
 import type { DetectedGame, GameImportSource } from '@/lib/bindings'
 
 interface DetectedGamesDialogProps {
@@ -119,30 +118,14 @@ export function DetectedGamesDialog({
           </div>
         ) : null}
 
-        <DialogFooter className="flex-row-reverse">
-          <Button
-            type="button"
-            onClick={() => handleImport('ExeMsi')}
-            disabled={selectedGames.length === 0 || isLoading || isRefreshing}
-          >
-            Import {selectedGames.length > 0 ? `(${selectedGames.length})` : ''}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onRefresh}
-            disabled={isLoading || isRefreshing}
-          >
-            Refresh
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-        </DialogFooter>
+        <ImportDialogFooter
+          onImport={() => handleImport('ExeMsi')}
+          onRefresh={onRefresh}
+          onCancel={() => onOpenChange(false)}
+          selectedCount={selectedGames.length}
+          isLoading={isLoading}
+          isRefreshing={isRefreshing}
+        />
       </DialogContent>
     </Dialog>
   )

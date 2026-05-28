@@ -1,19 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/lib/bindings'
 
@@ -114,8 +104,8 @@ export function GameCard({
           >
             {launching ? 'Launching...' : 'Launch'}
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <DeleteConfirmDialog
+            trigger={
               <Button
                 type="button"
                 size="sm"
@@ -124,26 +114,11 @@ export function GameCard({
               >
                 Delete
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete game?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  &ldquo;{game.title}&rdquo; will be permanently removed. This
-                  cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => onDelete(game.id)}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            }
+            label="Delete game?"
+            entityName={game.title}
+            onConfirm={() => onDelete(game.id)}
+          />
         </div>
       </CardContent>
     </Card>

@@ -1,20 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -300,8 +290,8 @@ export function GameDetailPanel({
         </CardContent>
       </Card>
 
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
+      <DeleteConfirmDialog
+        trigger={
           <Button
             type="button"
             variant="ghost"
@@ -309,26 +299,11 @@ export function GameDetailPanel({
           >
             Delete Game
           </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete game?</AlertDialogTitle>
-            <AlertDialogDescription>
-              &ldquo;{game.title}&rdquo; will be permanently removed. This
-              cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => onDelete(game.id)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        }
+        label="Delete game?"
+        entityName={game.title}
+        onConfirm={() => onDelete(game.id)}
+      />
     </div>
   )
 }

@@ -30,6 +30,21 @@ function profilesFromValues(values: unknown[]): CiderDeckProfile[] {
   )
 }
 
+async function saveProfilesMutationFn(
+  profiles: CiderDeckProfile[]
+): Promise<CiderDeckProfile[]> {
+  if (!isTauri()) {
+    saveToLocalStorage(profiles)
+    return profiles
+  }
+
+  const result = await commands.saveProfiles(profiles as unknown as JsonValue[])
+  if (result.status === 'error') {
+    throw new Error(result.error)
+  }
+  return profiles
+}
+
 export function useProfileStore() {
   return useQuery({
     queryKey: profileQueryKeys.profiles(),
@@ -48,32 +63,6 @@ export function useProfileStore() {
   })
 }
 
-export function useSaveProfiles() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (profiles: CiderDeckProfile[]) => {
-      if (!isTauri()) {
-        saveToLocalStorage(profiles)
-        return
-      }
-
-      const result = await commands.saveProfiles(
-        profiles as unknown as JsonValue[]
-      )
-      if (result.status === 'error') {
-        throw new Error(result.error)
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: profileQueryKeys.profiles() })
-    },
-    onError: (error: Error) => {
-      toast.error('Failed to save profiles', { description: error.message })
-    },
-  })
-}
-
 export function useUpsertProfile() {
   const queryClient = useQueryClient()
 
@@ -86,19 +75,7 @@ export function useUpsertProfile() {
       profile: CiderDeckProfile
     }) => {
       const updated = upsertProfile(profiles, profile)
-
-      if (!isTauri()) {
-        saveToLocalStorage(updated)
-        return updated
-      }
-
-      const result = await commands.saveProfiles(
-        updated as unknown as JsonValue[]
-      )
-      if (result.status === 'error') {
-        throw new Error(result.error)
-      }
-      return updated
+      return saveProfilesMutationFn(updated)
     },
     onSuccess: updated => {
       queryClient.setQueryData(profileQueryKeys.profiles(), updated)
@@ -121,19 +98,7 @@ export function useDeleteProfile() {
       profileId: string
     }) => {
       const updated = deleteFromList(profiles, profileId)
-
-      if (!isTauri()) {
-        saveToLocalStorage(updated)
-        return updated
-      }
-
-      const result = await commands.saveProfiles(
-        updated as unknown as JsonValue[]
-      )
-      if (result.status === 'error') {
-        throw new Error(result.error)
-      }
-      return updated
+      return saveProfilesMutationFn(updated)
     },
     onSuccess: updated => {
       queryClient.setQueryData(profileQueryKeys.profiles(), updated)

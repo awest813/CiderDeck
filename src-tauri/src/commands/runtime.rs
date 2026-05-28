@@ -107,6 +107,25 @@ fn parse_wine_version(output: &str) -> Option<String> {
         .map(|s| s.trim().to_string())
 }
 
+/// Run a Wine binary at `path` with `--version` and return the parsed version string.
+/// Returns `None` if the binary does not exist, fails to run, or its output cannot be parsed.
+fn get_wine_binary_version(path: &str) -> Option<String> {
+    if !Path::new(path).exists() {
+        return None;
+    }
+    Command::new(path)
+        .arg("--version")
+        .output()
+        .ok()
+        .and_then(|o| {
+            if o.status.success() {
+                parse_wine_version(&String::from_utf8_lossy(&o.stdout))
+            } else {
+                None
+            }
+        })
+}
+
 // ============================================================================
 // Whisky Detection
 // ============================================================================
@@ -131,21 +150,7 @@ fn detect_whisky() -> RuntimeInfo {
     let version = get_app_bundle_version(whisky_app);
 
     let wine64_path = format!("{whisky_app}/Contents/MacOS/wine64");
-    let wine_version = if Path::new(&wine64_path).exists() {
-        Command::new(&wine64_path)
-            .arg("--version")
-            .output()
-            .ok()
-            .and_then(|o| {
-                if o.status.success() {
-                    parse_wine_version(&String::from_utf8_lossy(&o.stdout))
-                } else {
-                    None
-                }
-            })
-    } else {
-        None
-    };
+    let wine_version = get_wine_binary_version(&wine64_path);
 
     log::info!("Whisky detected with version {:?}", version);
     RuntimeInfo {
@@ -182,21 +187,7 @@ fn detect_crossover() -> RuntimeInfo {
     let version = get_app_bundle_version(crossover_app);
 
     let wine_path = "/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine";
-    let wine_version = if Path::new(wine_path).exists() {
-        Command::new(wine_path)
-            .arg("--version")
-            .output()
-            .ok()
-            .and_then(|o| {
-                if o.status.success() {
-                    parse_wine_version(&String::from_utf8_lossy(&o.stdout))
-                } else {
-                    None
-                }
-            })
-    } else {
-        None
-    };
+    let wine_version = get_wine_binary_version(wine_path);
 
     log::info!("CrossOver detected with version {:?}", version);
     RuntimeInfo {

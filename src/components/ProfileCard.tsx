@@ -1,18 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { helperLabel } from '@/lib/helper-catalog'
 import { cn } from '@/lib/utils'
 import type { CiderDeckProfile, ProfileStatus } from '@/types/Profile'
@@ -142,8 +132,8 @@ export function ProfileCard({
           >
             Edit
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <DeleteConfirmDialog
+            trigger={
               <Button
                 type="button"
                 size="sm"
@@ -152,26 +142,11 @@ export function ProfileCard({
               >
                 Delete
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete profile?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  &ldquo;{profile.title}&rdquo; will be permanently removed.
-                  This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => onDelete(profile.id)}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            }
+            label="Delete profile?"
+            entityName={profile.title}
+            onConfirm={() => onDelete(profile.id)}
+          />
         </div>
       </CardContent>
     </Card>
