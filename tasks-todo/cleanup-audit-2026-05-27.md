@@ -135,3 +135,34 @@ Generated from `knip`, `jscpd`, and `npm run check:all`. Items are ordered by co
 - **File:** `src/test/App.test.tsx` (mock data)
 - **Action:** Find the mock data array where two items share `key='0'` and give them unique keys.
 - **Why:** Non-failing but noisy — masks real key warnings in future test output.
+
+---
+
+## ✅ Progress Update — 2026-05-28
+
+### Completed this pass
+
+- #1 `zod-validation-error` is not a direct dependency anymore (`npm uninstall` was a no-op).
+- #2 `CommandPalette` default export is already removed.
+- #3 `CommandGroup` interface is already removed from `src/lib/commands/types.ts`.
+- #4 `knip.json` tracks `src/quick-pane-main.tsx`; redundant `src/main.tsx` entry removed.
+- #5 `LeftSideBar.tsx` and `RightSideBar.tsx` are already absent.
+- #8 `getRuntimeProviderOrDefault` is already absent from `src/runtimes/registry.ts`.
+- #9 `useSaveProfiles` is already absent; shared save mutation helper is in place.
+- #10 `FormProps` shared interface is already absent.
+- #12 Extracted shared Wine-compatible runtime helpers in `src-tauri/src/runtime_provider.rs` to reduce duplicated launch logic.
+- #13 `<ImportDialogFooter />` extraction is already in use by both import dialogs.
+- #14 Wine version detection helper is already shared in runtime detection (`get_wine_binary_version`).
+- #15 Shared `saveProfilesMutationFn` helper is already in place.
+- #16 Launch handlers are merged into `handleLaunch(game, profileId?)`.
+- #17 `<DeleteConfirmDialog />` extraction is already in use across game/profile/bottle/detail components.
+- #18 No duplicate React `key='0'` instance found in current test sources.
+
+### Decisions kept (no removal)
+
+- #6 Keep `loadEmergencyData` for recovery API completeness and documented usage.
+- #7 Keep `unwrapResult`; added `@public` JSDoc tag to formalize public utility intent.
+
+### Follow-up needed
+
+- Re-run `npm run check:all` in an environment with system `glib-2.0` dev libraries installed (current sandbox fails during Rust build dependency probing).

@@ -41,6 +41,8 @@ export type {
 
 /**
  * Helper to unwrap a Result type, throwing on error
+ *
+ * @public
  */
 export function unwrapResult<T, E>(
   result: { status: 'ok'; data: T } | { status: 'error'; error: E }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["src/main.tsx", "src/quick-pane-main.tsx"],
+  "entry": ["src/quick-pane-main.tsx"],
   "project": ["src/**/*.{ts,tsx}"],
   "ignore": [
     "src/components/ui/**",
