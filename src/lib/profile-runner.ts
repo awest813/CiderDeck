@@ -41,9 +41,13 @@ const buildLogEntry = (
  * Build the launch request for a profile and either invoke the native
  * Tauri command or return a simulated preview log when running in a
  * non-Tauri environment (e.g. browser dev mode).
+ *
+ * @param extraArgs - Extra arguments appended to the profile's args after the
+ *   launch request is built (e.g. per-game overrides from the game library).
  */
 export const launchProfile = async (
-  profile: CiderDeckProfile
+  profile: CiderDeckProfile,
+  extraArgs: string[] = []
 ): Promise<ProfileLogEntry> => {
   let request: LaunchRequest
   try {
@@ -57,6 +61,11 @@ export const launchProfile = async (
           : `Unexpected error: ${String(error)}`,
       exit_code: null,
     })
+  }
+
+  // Append per-game extra args (if any) after the profile's own args.
+  if (extraArgs.length > 0) {
+    request = { ...request, args: [...request.args, ...extraArgs] }
   }
 
   const command = formatCommand(request)

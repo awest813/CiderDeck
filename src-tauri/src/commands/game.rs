@@ -424,6 +424,9 @@ pub struct Game {
     pub notes: Option<String>,
     #[serde(rename = "profileIds")]
     pub profile_ids: Vec<String>,
+    /// Extra command-line arguments appended to the profile's args at launch time.
+    #[serde(default, rename = "extraArgs")]
+    pub extra_args: Vec<String>,
     #[serde(rename = "createdAt")]
     pub created_at: String,
     #[serde(rename = "updatedAt")]
@@ -444,6 +447,9 @@ pub struct GameImport {
     pub notes: Option<String>,
     #[serde(default, rename = "profileIds")]
     pub profile_ids: Vec<String>,
+    /// Extra command-line arguments appended to the profile's args at launch time.
+    #[serde(default, rename = "extraArgs")]
+    pub extra_args: Vec<String>,
 }
 
 fn games_file(app: &AppHandle) -> Result<PathBuf, String> {
@@ -573,6 +579,7 @@ pub async fn import_game(app: AppHandle, import: GameImport) -> Result<Game, Str
         tags: import.tags,
         notes: import.notes,
         profile_ids: import.profile_ids,
+        extra_args: import.extra_args,
         created_at: now.clone(),
         updated_at: now,
     };
