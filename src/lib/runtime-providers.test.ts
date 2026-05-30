@@ -30,18 +30,26 @@ function requireProvider(id: string): RuntimeProvider {
 // ---------------------------------------------------------------------------
 
 describe('getRuntimeProvider / RUNTIME_PROVIDERS', () => {
-  it('returns all five providers', () => {
+  it('returns all six providers', () => {
     const ids = RUNTIME_PROVIDERS.map(p => p.id)
     expect(ids).toContain('wine')
     expect(ids).toContain('crossover')
     expect(ids).toContain('whisky')
     expect(ids).toContain('gptk')
     expect(ids).toContain('custom')
-    expect(ids).toHaveLength(5)
+    expect(ids).toContain('native')
+    expect(ids).toHaveLength(6)
   })
 
   it('getRuntimeProvider returns the right provider by id', () => {
-    for (const id of ['wine', 'crossover', 'whisky', 'gptk', 'custom']) {
+    for (const id of [
+      'wine',
+      'crossover',
+      'whisky',
+      'gptk',
+      'custom',
+      'native',
+    ]) {
       const p = getRuntimeProvider(id)
       expect(p).toBeDefined()
       if (p) expect(p.id).toBe(id)
