@@ -79,9 +79,16 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 - `useGogDetection` / `useRefreshGog` TanStack Query hooks
 - `extraArgs` per-game extra launch arguments — stored on `Game`, editable in `GameDetailPanel`, appended to the profile's args at launch time
 
+**Phase D** ✅ Complete — portable game onboarding wizard:
+
+- `PortableGameWizard` — four-step guided dialog (Source → File → Details → Profiles)
+- Native file picker via `@tauri-apps/plugin-dialog` for EXE/MSI and App Bundle sources
+- Auto-name suggestion from file/folder path (`nameFromPath` helper)
+- Profile linking step with checkbox list; graceful fallback in non-Tauri environments
+- `+ Add Portable` toolbar button in `GameLibraryPage`
+
 Remaining for v0.4 (future iterations):
 
-- Portable game onboarding wizard
 - Install flows for installer-based games
 
 ## v0.5 — Proton-Style Convenience
