@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -122,7 +123,14 @@ export function GameDetailPanel({
     profile: CompatibilityProfile,
     preset: CompatibilityPreset
   ) => {
+    const previous = profile
     onUpdateProfile(applyPreset(profile, preset))
+    toast.success(`Applied preset "${preset.name}"`, {
+      action: {
+        label: 'Undo',
+        onClick: () => onUpdateProfile(previous),
+      },
+    })
   }
 
   return (
