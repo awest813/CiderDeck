@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
+import { PresetPickerDialog } from '@/components/PresetPickerDialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useRuntimeDetection } from '@/hooks/use-runtime-detection'
 import { helperLabel } from '@/lib/helper-catalog'
+import { applyPreset, type CompatibilityPreset } from '@/lib/compatibility-presets'
 import {
   getCurrentRuntimeBackend,
   getQuickRuntimeOptions,
@@ -32,6 +34,7 @@ interface GameDetailPanelProps {
   game: Game
   profiles: CiderDeckProfile[]
   onUpdate: (game: Game) => void
+  onUpdateProfile: (profile: CiderDeckProfile) => void
   onDelete: (gameId: string) => void
   onLaunch: (game: Game, profileId: string) => Promise<void>
   onLaunchWithRuntime: (
@@ -49,6 +52,7 @@ export function GameDetailPanel({
   game,
   profiles,
   onUpdate,
+  onUpdateProfile,
   onDelete,
   onLaunch,
   onLaunchWithRuntime,
@@ -112,6 +116,13 @@ export function GameDetailPanel({
     } finally {
       setLaunching(false)
     }
+  }
+
+  const handleApplyPreset = (
+    profile: CompatibilityProfile,
+    preset: CompatibilityPreset
+  ) => {
+    onUpdateProfile(applyPreset(profile, preset))
   }
 
   return (
@@ -312,6 +323,20 @@ export function GameDetailPanel({
                     ) : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {isCompatibilityProfile(profile) ? (
+                      <PresetPickerDialog
+                        trigger={
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                          >
+                            Apply preset…
+                          </Button>
+                        }
+                        onApply={preset => handleApplyPreset(profile, preset)}
+                      />
+                    ) : null}
                     {runtimeOptions.length > 0 ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

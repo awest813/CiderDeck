@@ -22,7 +22,7 @@ import {
   useDeleteGame,
   useImportGame,
 } from '@/services/game-library'
-import { useProfileStore } from '@/services/profile-store'
+import { useProfileStore, useUpsertProfile } from '@/services/profile-store'
 import { launchProfile } from '@/lib/profile-runner'
 import { helperLabel } from '@/lib/helper-catalog'
 import {
@@ -65,6 +65,7 @@ export function GameLibraryPage() {
   const saveGame = useSaveGame()
   const deleteGame = useDeleteGame()
   const importGame = useImportGame()
+  const upsertProfile = useUpsertProfile()
 
   const selectedGame = games.find(g => g.id === selectedGameId)
 
@@ -98,6 +99,10 @@ export function GameLibraryPage() {
 
   const handleUpdateGame = (game: Game) => {
     saveGame.mutate(game)
+  }
+
+  const handleUpdateProfile = (profile: CiderDeckProfile) => {
+    upsertProfile.mutate({ profiles, profile })
   }
 
   const handleDeleteGame = (gameId: string) => {
@@ -389,6 +394,7 @@ export function GameLibraryPage() {
             game={selectedGame}
             profiles={profiles}
             onUpdate={handleUpdateGame}
+            onUpdateProfile={handleUpdateProfile}
             onDelete={handleDeleteGame}
             onLaunch={handleLaunch}
             onLaunchWithRuntime={handleLaunchWithRuntime}
