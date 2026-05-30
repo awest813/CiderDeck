@@ -10,6 +10,7 @@ import { GameDetailPanel } from '@/components/GameDetailPanel'
 import { GameImportDialog } from '@/components/GameImportDialog'
 import { DetectedGamesDialog } from '@/components/DetectedGamesDialog'
 import { LauncherImportDialog } from '@/components/LauncherImportDialog'
+import { PortableGameWizard } from '@/components/PortableGameWizard'
 import { Spinner } from '@/components/ui/spinner'
 import {
   useGameDetection,
@@ -37,6 +38,8 @@ export function GameLibraryPage() {
   const [selectedGameId, setSelectedGameId] = useState<string>()
   const [importOpen, setImportOpen] = useState(false)
   const [importKey, setImportKey] = useState(0)
+  const [wizardOpen, setWizardOpen] = useState(false)
+  const [wizardKey, setWizardKey] = useState(0)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [filterTag, setFilterTag] = useState<string | null>(null)
   const [detectOpen, setDetectOpen] = useState(false)
@@ -177,6 +180,16 @@ export function GameLibraryPage() {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              onClick={() => {
+                setWizardKey(k => k + 1)
+                setWizardOpen(true)
+              }}
+              variant="secondary"
+            >
+              + Add Portable
+            </Button>
             <Button
               type="button"
               onClick={() => {
@@ -383,6 +396,14 @@ export function GameLibraryPage() {
         existingInstallPaths={existingInstallPaths}
         existingTitles={existingTitles}
         onImport={handleImportMany}
+      />
+
+      <PortableGameWizard
+        key={`wizard-${wizardKey}`}
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onImport={handleImport}
+        profiles={profiles}
       />
     </main>
   )
