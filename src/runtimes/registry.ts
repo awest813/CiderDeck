@@ -6,6 +6,7 @@ import { CrossOverRuntimeProvider } from '@/runtimes/providers/crossover'
 import { WhiskyRuntimeProvider } from '@/runtimes/providers/whisky'
 import { GptkRuntimeProvider } from '@/runtimes/providers/gptk'
 import { CustomRuntimeProvider } from '@/runtimes/providers/custom'
+import { NativeWindowsRuntimeProvider } from '@/runtimes/providers/native'
 
 export const RUNTIME_PROVIDERS: readonly RuntimeProvider[] = [
   new WineRuntimeProvider(),
@@ -13,6 +14,7 @@ export const RUNTIME_PROVIDERS: readonly RuntimeProvider[] = [
   new WhiskyRuntimeProvider(),
   new GptkRuntimeProvider(),
   new CustomRuntimeProvider(),
+  new NativeWindowsRuntimeProvider(),
 ]
 
 export const getRuntimeProvider = (id: string): RuntimeProvider | undefined =>
