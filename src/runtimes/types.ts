@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-export type RuntimeKind = 'wine' | 'crossover' | 'whisky' | 'gptk' | 'custom' | 'native'
+export type RuntimeKind =
+  | 'wine'
+  | 'crossover'
+  | 'whisky'
+  | 'gptk'
+  | 'custom'
+  | 'native'
 
 export interface RuntimeProfile {
   executablePath?: string

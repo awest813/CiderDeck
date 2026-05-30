@@ -14,11 +14,19 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useRuntimeDetection } from '@/hooks/use-runtime-detection'
+import { helperLabel } from '@/lib/helper-catalog'
+import {
+  getCurrentRuntimeBackend,
+  getQuickRuntimeOptions,
+  type QuickRuntimeBackend,
+} from '@/lib/quick-runtime-launch'
 import { cn } from '@/lib/utils'
 import type { Game } from '@/lib/bindings'
-import type { CiderDeckProfile } from '@/types/Profile'
+import type { CiderDeckProfile, CompatibilityProfile } from '@/types/Profile'
 
 interface GameDetailPanelProps {
   game: Game
@@ -26,7 +34,16 @@ interface GameDetailPanelProps {
   onUpdate: (game: Game) => void
   onDelete: (gameId: string) => void
   onLaunch: (game: Game, profileId: string) => Promise<void>
+  onLaunchWithRuntime: (
+    game: Game,
+    profileId: string,
+    runtime: QuickRuntimeBackend
+  ) => Promise<void>
 }
+
+const isCompatibilityProfile = (
+  profile: CiderDeckProfile
+): profile is CompatibilityProfile => profile.category === 'compatibility-layer'
 
 export function GameDetailPanel({
   game,
@@ -34,6 +51,7 @@ export function GameDetailPanel({
   onUpdate,
   onDelete,
   onLaunch,
+  onLaunchWithRuntime,
 }: GameDetailPanelProps) {
   const [editing, setEditing] = useState(false)
   const [launching, setLaunching] = useState(false)
@@ -42,6 +60,7 @@ export function GameDetailPanel({
   const [artworkPath, setArtworkPath] = useState(game.artworkPath ?? '')
   const [tagInput, setTagInput] = useState(game.tags.join(', '))
   const [extraArgsInput, setExtraArgsInput] = useState(game.extraArgs.join(' '))
+  const { runtimes } = useRuntimeDetection()
 
   const linkedProfiles = profiles.filter(p => game.profileIds.includes(p.id))
   const unlinkedProfiles = profiles.filter(p => !game.profileIds.includes(p.id))
@@ -78,6 +97,18 @@ export function GameDetailPanel({
     setLaunching(true)
     try {
       await onLaunch(game, profileId)
+    } finally {
+      setLaunching(false)
+    }
+  }
+
+  const handleLaunchWithRuntime = async (
+    profileId: string,
+    runtime: QuickRuntimeBackend
+  ) => {
+    setLaunching(true)
+    try {
+      await onLaunchWithRuntime(game, profileId, runtime)
     } finally {
       setLaunching(false)
     }
@@ -261,22 +292,77 @@ export function GameDetailPanel({
         </CardHeader>
         <CardContent className="space-y-2">
           {linkedProfiles.length > 0 ? (
-            linkedProfiles.map(profile => (
-              <div
-                key={profile.id}
-                className="flex items-center justify-between rounded-xl border bg-card p-2 shadow-sm transition-all duration-200 hover:shadow-md"
-              >
-                <span className="text-sm">{profile.title}</span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => toggleProfile(profile.id)}
+            linkedProfiles.map(profile => {
+              const runtimeOptions = isCompatibilityProfile(profile)
+                ? getQuickRuntimeOptions(profile, runtimes)
+                : []
+
+              return (
+                <div
+                  key={profile.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border bg-card p-2 shadow-sm transition-all duration-200 hover:shadow-md"
                 >
-                  Unlink
-                </Button>
-              </div>
-            ))
+                  <div className="min-w-0">
+                    <p className="truncate text-sm">{profile.title}</p>
+                    {isCompatibilityProfile(profile) ? (
+                      <p className="text-xs text-muted-foreground">
+                        Runtime:{' '}
+                        {helperLabel(getCurrentRuntimeBackend(profile))}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {runtimeOptions.length > 0 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={launching}
+                          >
+                            Try with…
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>
+                            Quick runtime switch
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {runtimeOptions.map(option => (
+                            <DropdownMenuItem
+                              key={option.id}
+                              disabled={launching || !option.available}
+                              onClick={() =>
+                                void handleLaunchWithRuntime(
+                                  profile.id,
+                                  option.id
+                                )
+                              }
+                            >
+                              {option.label}
+                              {!option.available ? (
+                                <DropdownMenuShortcut>
+                                  Not found
+                                </DropdownMenuShortcut>
+                              ) : null}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => toggleProfile(profile.id)}
+                    >
+                      Unlink
+                    </Button>
+                  </div>
+                </div>
+              )
+            })
           ) : (
             <p className="text-sm text-muted-foreground">
               No profiles linked yet.

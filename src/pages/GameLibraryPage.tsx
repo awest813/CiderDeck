@@ -24,6 +24,11 @@ import {
 } from '@/services/game-library'
 import { useProfileStore } from '@/services/profile-store'
 import { launchProfile } from '@/lib/profile-runner'
+import { helperLabel } from '@/lib/helper-catalog'
+import {
+  createQuickRuntimeLaunchProfile,
+  type QuickRuntimeBackend,
+} from '@/lib/quick-runtime-launch'
 import { cn } from '@/lib/utils'
 import type {
   Game,
@@ -31,8 +36,13 @@ import type {
   DetectedGame,
   GameImportSource,
 } from '@/lib/bindings'
+import type { CiderDeckProfile, CompatibilityProfile } from '@/types/Profile'
 
 type ViewMode = 'grid' | 'list'
+
+const isCompatibilityProfile = (
+  profile: CiderDeckProfile
+): profile is CompatibilityProfile => profile.category === 'compatibility-layer'
 
 export function GameLibraryPage() {
   const [selectedGameId, setSelectedGameId] = useState<string>()
@@ -114,6 +124,35 @@ export function GameLibraryPage() {
       }
     } catch {
       toast.error('Failed to launch game')
+    } finally {
+      setLaunching(null)
+    }
+  }
+
+  const handleLaunchWithRuntime = async (
+    game: Game,
+    profileId: string,
+    runtime: QuickRuntimeBackend
+  ) => {
+    const profile = profiles.find(p => p.id === profileId)
+    if (!profile || !isCompatibilityProfile(profile)) return
+
+    setLaunching(game.id)
+    try {
+      const entry = await launchProfile(
+        createQuickRuntimeLaunchProfile(profile, runtime),
+        game.extraArgs
+      )
+      if (entry.exitCode !== null && entry.exitCode !== 0) {
+        toast.error(
+          `${helperLabel(runtime)} launch exited with code ${entry.exitCode}`,
+          {
+            description: entry.stderr || undefined,
+          }
+        )
+      }
+    } catch {
+      toast.error(`Failed to launch game with ${helperLabel(runtime)}`)
     } finally {
       setLaunching(null)
     }
@@ -352,6 +391,7 @@ export function GameLibraryPage() {
             onUpdate={handleUpdateGame}
             onDelete={handleDeleteGame}
             onLaunch={handleLaunch}
+            onLaunchWithRuntime={handleLaunchWithRuntime}
           />
         ) : (
           <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-6 text-center transition-colors hover:border-muted-foreground/25">
