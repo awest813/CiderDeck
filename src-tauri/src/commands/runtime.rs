@@ -282,6 +282,21 @@ fn get_app_bundle_version(app_path: &str) -> Option<String> {
 // Aggregated Detection
 // ============================================================================
 
+/// Detect the Windows Native runtime availability.
+///
+/// On Windows this is always available; on other platforms it is reported as
+/// unavailable since it does not apply.
+fn detect_native_windows() -> RuntimeInfo {
+    RuntimeInfo {
+        id: "native".to_string(),
+        name: "Windows Native".to_string(),
+        available: cfg!(target_os = "windows"),
+        version: None,
+        executable_path: None,
+        error: None,
+    }
+}
+
 /// Detect all known compatibility runtimes and return their info.
 pub fn detect_all_runtimes() -> Vec<RuntimeInfo> {
     vec![
@@ -289,6 +304,7 @@ pub fn detect_all_runtimes() -> Vec<RuntimeInfo> {
         detect_whisky(),
         detect_crossover(),
         detect_gptk(),
+        detect_native_windows(),
     ]
 }
 
@@ -328,15 +344,16 @@ mod tests {
     }
 
     #[test]
-    fn test_detect_all_runtimes_returns_all_four() {
+    fn test_detect_all_runtimes_returns_all_five() {
         let runtimes = detect_all_runtimes();
-        assert_eq!(runtimes.len(), 4);
+        assert_eq!(runtimes.len(), 5);
 
         let ids: Vec<&str> = runtimes.iter().map(|r| r.id.as_str()).collect();
         assert!(ids.contains(&"wine"));
         assert!(ids.contains(&"whisky"));
         assert!(ids.contains(&"crossover"));
         assert!(ids.contains(&"gptk"));
+        assert!(ids.contains(&"native"));
     }
 
     #[test]
@@ -347,5 +364,12 @@ mod tests {
             assert!(!info.id.is_empty());
             assert!(!info.name.is_empty());
         }
+    }
+
+    #[test]
+    fn test_native_windows_availability() {
+        let info = detect_native_windows();
+        assert_eq!(info.id, "native");
+        assert_eq!(info.available, cfg!(target_os = "windows"));
     }
 }

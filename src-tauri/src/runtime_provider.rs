@@ -556,6 +556,88 @@ impl RuntimeProvider for CustomProvider {
 }
 
 // ============================================================================
+// Native Windows provider
+// ============================================================================
+
+/// Runs a Windows EXE file directly without any compatibility layer.
+///
+/// This provider is used when CiderDeck runs natively on Windows — the EXE
+/// is simply launched as-is. No Wine binary, no prefix, no translation layer.
+pub struct NativeWindowsProvider;
+
+impl RuntimeProvider for NativeWindowsProvider {
+    fn id(&self) -> &str {
+        "native"
+    }
+
+    fn name(&self) -> &str {
+        "Windows Native"
+    }
+
+    fn detect(&self) -> RuntimeInfo {
+        RuntimeInfo {
+            id: self.id().to_string(),
+            name: self.name().to_string(),
+            // Native execution is always available on Windows; on other
+            // platforms it is not meaningful.
+            available: cfg!(target_os = "windows"),
+            version: None,
+            executable_path: None,
+            error: None,
+        }
+    }
+
+    fn validate(&self, config: &ProviderConfig) -> ProviderValidation {
+        let mut errors = Vec::new();
+        if config
+            .target_executable
+            .as_deref()
+            .map_or(true, str::is_empty)
+        {
+            errors.push("Target executable is required.".to_string());
+        }
+        ProviderValidation {
+            valid: errors.is_empty(),
+            errors,
+        }
+    }
+
+    fn executable_path(&self, config: &ProviderConfig) -> Option<String> {
+        // For native execution the target executable *is* the program.
+        config.target_executable.clone().filter(|s| !s.is_empty())
+    }
+
+    fn container_path(&self, _config: &ProviderConfig) -> Option<String> {
+        // No container / prefix for native Windows apps.
+        None
+    }
+
+    fn env_vars(&self, config: &ProviderConfig) -> HashMap<String, String> {
+        config.env_vars.clone()
+    }
+
+    fn launch_args(&self, config: &ProviderConfig) -> Vec<String> {
+        // The target exe is the program; any extra args follow.
+        config.launch_args.clone()
+    }
+
+    fn build_launch_command(&self, config: &ProviderConfig) -> Result<LaunchCommand, String> {
+        let program = config
+            .target_executable
+            .as_deref()
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .ok_or_else(|| "Windows Native: target executable is required.".to_string())?;
+
+        Ok(LaunchCommand {
+            program,
+            args: self.launch_args(config),
+            env: self.env_vars(config),
+        })
+    }
+}
+
+// ============================================================================
 // Provider registry
 // ============================================================================
 
@@ -567,6 +649,7 @@ pub fn get_provider(id: &str) -> Option<Box<dyn RuntimeProvider>> {
         "whisky" => Some(Box::new(WhiskyProvider)),
         "gptk" => Some(Box::new(GptkProvider)),
         "custom" => Some(Box::new(CustomProvider)),
+        "native" => Some(Box::new(NativeWindowsProvider)),
         _ => None,
     }
 }

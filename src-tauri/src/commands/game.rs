@@ -72,7 +72,12 @@ pub struct GogGame {
 }
 
 fn home_dir() -> Option<PathBuf> {
-    std::env::var("HOME").ok().map(PathBuf::from)
+    // On Windows the home directory is USERPROFILE; fall back to HOME for
+    // macOS and Linux.
+    std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .ok()
+        .map(PathBuf::from)
 }
 
 /// Parse a minimal subset of Valve's KeyValues (VDF) format.
@@ -146,34 +151,82 @@ fn parse_acf(path: &std::path::Path, install_base: &std::path::Path) -> Option<S
     })
 }
 
-/// Detect all Steam games installed on the system (macOS).
+/// Collect candidate Steam `steamapps` directories across all supported platforms.
 ///
-/// Scans `~/Library/Application Support/Steam/steamapps` plus any additional
-/// library paths listed in `libraryfolders.vdf`.
+/// Returns a de-duplicated, sorted list of existing `steamapps` directories.
+fn steam_candidate_dirs(home: Option<&PathBuf>) -> Vec<PathBuf> {
+    let mut candidates: Vec<PathBuf> = Vec::new();
+
+    // macOS default location
+    if let Some(h) = home {
+        candidates.push(
+            h.join("Library")
+                .join("Application Support")
+                .join("Steam")
+                .join("steamapps"),
+        );
+    }
+
+    // Windows: Program Files (x86) is the standard location; also check
+    // Program Files and the LOCALAPPDATA roaming Steam installation.
+    #[cfg(target_os = "windows")]
+    {
+        // %PROGRAMFILES(X86)%\Steam\steamapps  (most common)
+        if let Ok(pf86) = std::env::var("PROGRAMFILES(X86)") {
+            candidates.push(PathBuf::from(&pf86).join("Steam").join("steamapps"));
+        }
+        // %PROGRAMFILES%\Steam\steamapps
+        if let Ok(pf) = std::env::var("PROGRAMFILES") {
+            candidates.push(PathBuf::from(&pf).join("Steam").join("steamapps"));
+        }
+        // %LOCALAPPDATA%\Steam\steamapps  (rare, but some portable installs use this)
+        if let Ok(local) = std::env::var("LOCALAPPDATA") {
+            candidates.push(PathBuf::from(&local).join("Steam").join("steamapps"));
+        }
+    }
+
+    // Linux: ~/.steam/steam/steamapps (Debian/Ubuntu) and ~/.local/share/Steam/steamapps
+    #[cfg(target_os = "linux")]
+    {
+        if let Some(h) = home {
+            candidates.push(h.join(".steam").join("steam").join("steamapps"));
+            candidates.push(
+                h.join(".local")
+                    .join("share")
+                    .join("Steam")
+                    .join("steamapps"),
+            );
+        }
+    }
+
+    candidates
+}
+
+/// Detect all Steam games installed on the system.
+///
+/// Scans the platform-appropriate default `steamapps` directory and any
+/// additional library paths listed in `libraryfolders.vdf`.
 #[tauri::command]
 #[specta::specta]
 pub async fn detect_steam_games() -> Vec<SteamGame> {
-    let home = match home_dir() {
-        Some(h) => h,
-        None => return Vec::new(),
-    };
-
-    let default_steamapps = home
-        .join("Library")
-        .join("Application Support")
-        .join("Steam")
-        .join("steamapps");
+    let home = home_dir();
+    let candidate_dirs = steam_candidate_dirs(home.as_ref());
 
     let mut library_dirs: Vec<PathBuf> = Vec::new();
-    if default_steamapps.is_dir() {
-        library_dirs.push(default_steamapps.clone());
+    for dir in candidate_dirs {
+        if dir.is_dir() {
+            // Parse libraryfolders.vdf if present to pick up extra libraries.
+            let vdf = dir.join("libraryfolders.vdf");
+            if vdf.exists() {
+                library_dirs.extend(parse_library_folders(&vdf));
+            }
+            library_dirs.push(dir);
+        }
     }
 
-    // Discover additional library paths
-    let vdf = default_steamapps.join("libraryfolders.vdf");
-    if vdf.exists() {
-        library_dirs.extend(parse_library_folders(&vdf));
-    }
+    // De-duplicate library dirs
+    library_dirs.sort();
+    library_dirs.dedup();
 
     // De-duplicate library dirs
     library_dirs.sort();
@@ -211,107 +264,193 @@ pub async fn detect_steam_games() -> Vec<SteamGame> {
 // Epic Games Detection
 // ============================================================================
 
-/// Detect all games installed via the Epic Games Launcher (macOS).
+/// Collect candidate Epic Games Launcher manifest directories across platforms.
+fn epic_manifest_dirs(home: Option<&PathBuf>) -> Vec<PathBuf> {
+    let mut candidates: Vec<PathBuf> = Vec::new();
+
+    // macOS
+    if let Some(h) = home {
+        candidates.push(
+            h.join("Library")
+                .join("Application Support")
+                .join("Epic")
+                .join("EpicGamesLauncher")
+                .join("Data")
+                .join("Manifests"),
+        );
+    }
+
+    // Windows: manifests live under ProgramData
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(pd) = std::env::var("PROGRAMDATA") {
+            candidates.push(
+                PathBuf::from(&pd)
+                    .join("Epic")
+                    .join("EpicGamesLauncher")
+                    .join("Data")
+                    .join("Manifests"),
+            );
+        }
+    }
+
+    // Linux: ~/.config/Epic/EpicGamesLauncher/Data/Manifests (Heroic/Legendary layout)
+    #[cfg(target_os = "linux")]
+    {
+        if let Some(h) = home {
+            candidates.push(
+                h.join(".config")
+                    .join("Epic")
+                    .join("EpicGamesLauncher")
+                    .join("Data")
+                    .join("Manifests"),
+            );
+        }
+    }
+
+    candidates
+}
+
+/// Detect all games installed via the Epic Games Launcher.
 ///
-/// Scans `~/Library/Application Support/Epic/EpicGamesLauncher/Data/Manifests`
-/// for `*.item` JSON files. Each file describes one installed game.
+/// Scans the platform-appropriate manifests directory for `*.item` JSON files.
+/// Each file describes one installed game.
 #[tauri::command]
 #[specta::specta]
 pub async fn detect_epic_games() -> Vec<EpicGame> {
-    let home = match home_dir() {
-        Some(h) => h,
-        None => return Vec::new(),
-    };
-
-    let manifests_dir = home
-        .join("Library")
-        .join("Application Support")
-        .join("Epic")
-        .join("EpicGamesLauncher")
-        .join("Data")
-        .join("Manifests");
-
-    if !manifests_dir.is_dir() {
-        return Vec::new();
-    }
+    let home = home_dir();
+    let manifest_dirs = epic_manifest_dirs(home.as_ref());
 
     let mut games: Vec<EpicGame> = Vec::new();
 
-    let entries = match std::fs::read_dir(&manifests_dir) {
-        Ok(e) => e,
-        Err(_) => return games,
-    };
-
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("item") {
-            continue;
-        }
-        let text = match std::fs::read_to_string(&path) {
-            Ok(t) => t,
-            Err(_) => continue,
-        };
-        let json: serde_json::Value = match serde_json::from_str(&text) {
-            Ok(v) => v,
-            Err(_) => continue,
-        };
-
-        let name = match json.get("DisplayName").and_then(|v| v.as_str()) {
-            Some(n) => n.to_string(),
-            None => continue,
-        };
-        let install_location = match json.get("InstallLocation").and_then(|v| v.as_str()) {
-            Some(p) => p.to_string(),
-            None => continue,
-        };
-        let app_name = json
-            .get("MainGameAppName")
-            .and_then(|v| v.as_str())
-            .or_else(|| json.get("AppName").and_then(|v| v.as_str()))
-            .unwrap_or("")
-            .to_string();
-        let launch_executable = json
-            .get("LaunchExecutable")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
-
-        // Skip entries that look like DLC/addons (no install location)
-        if install_location.is_empty() {
+    for manifests_dir in manifest_dirs {
+        if !manifests_dir.is_dir() {
             continue;
         }
 
-        games.push(EpicGame {
-            app_name,
-            name,
-            install_location,
-            launch_executable,
-        });
+        let entries = match std::fs::read_dir(&manifests_dir) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) != Some("item") {
+                continue;
+            }
+            let text = match std::fs::read_to_string(&path) {
+                Ok(t) => t,
+                Err(_) => continue,
+            };
+            let json: serde_json::Value = match serde_json::from_str(&text) {
+                Ok(v) => v,
+                Err(_) => continue,
+            };
+
+            let name = match json.get("DisplayName").and_then(|v| v.as_str()) {
+                Some(n) => n.to_string(),
+                None => continue,
+            };
+            let install_location = match json.get("InstallLocation").and_then(|v| v.as_str()) {
+                Some(p) => p.to_string(),
+                None => continue,
+            };
+            let app_name = json
+                .get("MainGameAppName")
+                .and_then(|v| v.as_str())
+                .or_else(|| json.get("AppName").and_then(|v| v.as_str()))
+                .unwrap_or("")
+                .to_string();
+            let launch_executable = json
+                .get("LaunchExecutable")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+
+            // Skip entries that look like DLC/addons (no install location)
+            if install_location.is_empty() {
+                continue;
+            }
+
+            // Avoid duplicates if multiple manifest dirs are scanned
+            if games.iter().any(|g: &EpicGame| g.app_name == app_name) {
+                continue;
+            }
+
+            games.push(EpicGame {
+                app_name,
+                name,
+                install_location,
+                launch_executable,
+            });
+        }
     }
 
     log::info!("Epic detection: {} games found", games.len());
     games
 }
 
-/// Detect all games installed via GOG Galaxy (macOS).
+/// Detect all games installed via GOG Galaxy.
 ///
 /// GOG leaves a `goggame-<id>.info` JSON file in each game's install directory.
 /// This function scans common installation locations for those marker files and
 /// parses the game name and ID from them.
 ///
-/// Locations scanned (depth 1):
+/// Locations scanned on macOS (depth 1):
 /// - `/Applications/`
 /// - `~/Applications/`
 /// - `~/GOG Games/`
+///
+/// Locations scanned on Windows (depth 1):
+/// - `C:\GOG Games\`
+/// - `%PROGRAMFILES%\GOG Games\`
+/// - `%PROGRAMFILES(X86)%\GOG Games\`
+///
+/// Locations scanned on Linux (depth 1):
+/// - `~/GOG Games/`
+/// - `~/.local/share/GOG.com/Galaxy/Games/`
 #[tauri::command]
 #[specta::specta]
 pub async fn detect_gog_games() -> Vec<GogGame> {
     let home = home_dir();
 
     // Candidate root directories that GOG typically installs games into.
-    let mut search_roots: Vec<PathBuf> = vec![PathBuf::from("/Applications")];
-    if let Some(ref h) = home {
-        search_roots.push(h.join("Applications"));
-        search_roots.push(h.join("GOG Games"));
+    let mut search_roots: Vec<PathBuf> = Vec::new();
+
+    // macOS locations
+    #[cfg(target_os = "macos")]
+    {
+        search_roots.push(PathBuf::from("/Applications"));
+        if let Some(ref h) = home {
+            search_roots.push(h.join("Applications"));
+            search_roots.push(h.join("GOG Games"));
+        }
+    }
+
+    // Windows locations
+    #[cfg(target_os = "windows")]
+    {
+        search_roots.push(PathBuf::from("C:\\GOG Games"));
+        if let Ok(pf) = std::env::var("PROGRAMFILES") {
+            search_roots.push(PathBuf::from(&pf).join("GOG Games"));
+        }
+        if let Ok(pf86) = std::env::var("PROGRAMFILES(X86)") {
+            search_roots.push(PathBuf::from(&pf86).join("GOG Games"));
+        }
+    }
+
+    // Linux locations
+    #[cfg(target_os = "linux")]
+    {
+        if let Some(ref h) = home {
+            search_roots.push(h.join("GOG Games"));
+            search_roots.push(
+                h.join(".local")
+                    .join("share")
+                    .join("GOG.com")
+                    .join("Galaxy")
+                    .join("Games"),
+            );
+        }
     }
 
     let mut games: Vec<GogGame> = Vec::new();
@@ -330,10 +469,15 @@ pub async fn detect_gog_games() -> Vec<GogGame> {
         for top_entry in top_entries.flatten() {
             let top_path = top_entry.path();
 
-            // GOG info files can live directly in a game folder or one level
-            // inside an `.app` bundle (Contents/).  Check both locations.
+            // GOG info files can live directly in a game folder, or on macOS
+            // one level inside an `.app` bundle (Contents/).
             let candidate_dirs: Vec<PathBuf> = if top_path.is_dir() {
-                vec![top_path.clone(), top_path.join("Contents")]
+                let mut dirs = vec![top_path.clone()];
+                // macOS .app bundles store their contents in Contents/
+                if cfg!(target_os = "macos") {
+                    dirs.push(top_path.join("Contents"));
+                }
+                dirs
             } else {
                 continue;
             };
