@@ -41,9 +41,7 @@ export function GameDetailPanel({
   const [notes, setNotes] = useState(game.notes ?? '')
   const [artworkPath, setArtworkPath] = useState(game.artworkPath ?? '')
   const [tagInput, setTagInput] = useState(game.tags.join(', '))
-  const [extraArgsInput, setExtraArgsInput] = useState(
-    game.extraArgs.join(' ')
-  )
+  const [extraArgsInput, setExtraArgsInput] = useState(game.extraArgs.join(' '))
 
   const linkedProfiles = profiles.filter(p => game.profileIds.includes(p.id))
   const unlinkedProfiles = profiles.filter(p => !game.profileIds.includes(p.id))
