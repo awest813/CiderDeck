@@ -59,15 +59,34 @@ export const validateCompatibilityProfile = (
   profile: CompatibilityProfile
 ): ValidationResult => {
   const issues: ValidationIssue[] = []
-  const exec = requirePath(profile.executablePath, 'Windows executable path')
-  if (exec) issues.push(exec)
-  if (profile.backend === 'gptk') {
-    issues.push(
-      info(
-        'GPTK requires Apple Game Porting Toolkit installed and a configured prefix.'
-      )
-    )
+
+  // Every compatibility backend needs a target executable
+  if (profile.backend !== 'custom') {
+    const exec = requirePath(profile.executablePath, 'Windows executable path')
+    if (exec) issues.push(exec)
   }
+
+  // --- Backend-specific checks ---
+
+  if (profile.backend === 'gptk') {
+    if (!profile.winePrefixPath && !profile.bottlePath) {
+      issues.push(
+        error('GPTK requires a configured prefix/bottle path to launch games.')
+      )
+    }
+    issues.push(info('GPTK requires Apple Game Porting Toolkit installed.'))
+  }
+
+  if (profile.backend === 'crossover') {
+    if (!profile.bottlePath) {
+      issues.push(
+        warning(
+          'No CrossOver bottle specified — CrossOver may use its default bottle.'
+        )
+      )
+    }
+  }
+
   if (
     (profile.backend === 'wine' || profile.backend === 'whisky') &&
     !profile.winePrefixPath &&
@@ -80,6 +99,7 @@ export const validateCompatibilityProfile = (
       )
     )
   }
+
   if (
     (profile.backend === 'wine' || profile.backend === 'whisky') &&
     !profile.wineExecutablePath
@@ -92,6 +112,15 @@ export const validateCompatibilityProfile = (
       info(`No Wine executable path set — using ${wineExecutableDescription}.`)
     )
   }
+
+  if (profile.backend === 'custom') {
+    if (!profile.wineExecutablePath) {
+      issues.push(error('Custom runtime requires a runtime executable path.'))
+    }
+    const exec = requirePath(profile.executablePath, 'target executable path')
+    if (exec) issues.push(exec)
+  }
+
   return finalize(issues)
 }
 
@@ -344,6 +373,7 @@ export const validateProfile = (
     case 'crossover':
     case 'whisky':
     case 'gptk':
+    case 'custom':
       return validateCompatibilityProfile(profile as CompatibilityProfile)
     case 'doom':
       return validateDoomProfile(profile as DoomProfile)
