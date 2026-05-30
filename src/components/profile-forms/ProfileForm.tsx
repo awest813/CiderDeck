@@ -2,6 +2,7 @@
 
 import { useState, useMemo, type FormEvent } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -20,6 +21,8 @@ import {
 } from '@/components/profile-forms/shared'
 import { helperLabel } from '@/lib/helper-catalog'
 import { COMPATIBILITY_BACKENDS } from '@/types/Profile'
+import { PresetPickerDialog } from '@/components/PresetPickerDialog'
+import type { CompatibilityPreset } from '@/lib/compatibility-presets'
 import type {
   AlephOneProfile,
   CiderDeckProfile,
@@ -143,6 +146,33 @@ const isCompatibilityHelper = (
   helper: HelperId
 ): helper is CompatibilityBackend =>
   COMPATIBILITY_BACKENDS.some(backend => backend === helper)
+
+const RENDERER_OPTIONS: { value: FormState['renderer']; label: string }[] = [
+  { value: '', label: 'Auto' },
+  { value: 'wined3d', label: 'wined3d' },
+  { value: 'dxmt', label: 'dxmt' },
+  { value: 'd3dmetal', label: 'd3dmetal' },
+  { value: 'moltenvk', label: 'moltenvk' },
+  { value: 'auto', label: 'auto' },
+]
+
+const applyPresetToFormState = (
+  state: FormState,
+  preset: CompatibilityPreset
+): FormState => {
+  const existingEnv = parseEnvText(state.envVars) ?? {}
+  const mergedEnv = { ...existingEnv, ...(preset.env ?? {}) }
+  return {
+    ...state,
+    backend: preset.runtimeKind as CompatibilityBackend,
+    renderer: preset.renderer ?? state.renderer,
+    envVars: stringifyEnv(mergedEnv),
+    launchArgs:
+      preset.launchArgs !== undefined
+        ? joinArgs([...splitArgs(state.launchArgs), ...preset.launchArgs])
+        : state.launchArgs,
+  }
+}
 
 const emptyState = (): FormState => ({
   title: '',
@@ -693,6 +723,13 @@ export function ProfileForm({
     onSubmit(profile)
   }
 
+  const handleApplyPreset = (preset: CompatibilityPreset) => {
+    setState(current => applyPresetToFormState(current, preset))
+    toast.success(`Applied "${preset.name}"`, {
+      description: 'Review the updated fields and save to keep these settings.',
+    })
+  }
+
   const renderHelperFields = () => {
     switch (helper) {
       case 'wine':
@@ -701,6 +738,19 @@ export function ProfileForm({
       case 'gptk':
         return (
           <>
+            <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2">
+              <span className="text-xs text-muted-foreground">
+                Apply a known-good configuration
+              </span>
+              <PresetPickerDialog
+                trigger={
+                  <Button type="button" size="sm" variant="outline">
+                    Apply preset…
+                  </Button>
+                }
+                onApply={handleApplyPreset}
+              />
+            </div>
             <Field label="Backend">
               <Select
                 value={state.backend}
@@ -788,19 +838,23 @@ export function ProfileForm({
               </Select>
             </Field>
             <Field label="Renderer">
-              <Select
-                value={state.renderer}
-                onChange={e =>
-                  update('renderer', e.target.value as FormState['renderer'])
-                }
-              >
-                <option value="">Auto</option>
-                <option value="wined3d">wined3d</option>
-                <option value="dxmt">dxmt</option>
-                <option value="d3dmetal">d3dmetal</option>
-                <option value="moltenvk">moltenvk</option>
-                <option value="auto">auto</option>
-              </Select>
+              <div className="flex flex-wrap gap-1.5">
+                {RENDERER_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => update('renderer', value)}
+                    className={cn(
+                      'rounded border px-2.5 py-1 text-xs font-medium transition-colors',
+                      state.renderer === value
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground'
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </Field>
             <Field label="DLL overrides (DLL=mode per line)">
               <Textarea
