@@ -46,7 +46,10 @@ export const getPreset = (id: string): CompatibilityPreset | undefined =>
   COMPATIBILITY_PRESETS.find(p => p.id === id)
 
 export type { GamePresetContext } from '@/lib/preset-game-matching'
-export { launcherStoreIdTag, presetMatchesGameContext } from '@/lib/preset-game-matching'
+export {
+  launcherStoreIdTag,
+  presetMatchesGameContext,
+} from '@/lib/preset-game-matching'
 
 /** @deprecated Use presetMatchesGameContext */
 export const presetMatchesGameTitle = (
@@ -86,11 +89,11 @@ export const groupPresetsForPicker = (options?: {
   gameTitle?: string
   game?: GamePresetContext
 }): PresetPickerGroups => {
-  const context: GamePresetContext | undefined = options?.game ?? (
-    options?.gameTitle?.trim()
+  const context: GamePresetContext | undefined =
+    options?.game ??
+    (options?.gameTitle?.trim()
       ? { title: options.gameTitle.trim() }
-      : undefined
-  )
+      : undefined)
   const priority = context
     ? COMPATIBILITY_PRESETS.filter(preset =>
         presetMatchesGameContext(preset, context)

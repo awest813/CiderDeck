@@ -27,6 +27,8 @@ describe('isInstallerPath', () => {
 describe('defaultBottlePath', () => {
   it('builds runtime-specific bottle paths', () => {
     expect(defaultBottlePath('My Game', 'wine')).toBe('~/.wine-my-game')
-    expect(defaultBottlePath('My Game', 'whisky')).toContain('Whisky/Bottles/my-game')
+    expect(defaultBottlePath('My Game', 'whisky')).toContain(
+      'Whisky/Bottles/my-game'
+    )
   })
 })
