@@ -862,9 +862,7 @@ pub async fn run_game_installer(
         _ => return Err("Unsupported installer type.".to_string()),
     }
 
-    log::info!(
-        "Running {kind} installer in {runtime} bottle {bottle_path}: {installer_path}"
-    );
+    log::info!("Running {kind} installer in {runtime} bottle {bottle_path}: {installer_path}");
 
     let output = command
         .output()
