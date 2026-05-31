@@ -20,7 +20,7 @@ those licenses when you install and use them.
 
 - **Wine** — winehq.org
 - **CrossOver** — codeweavers.com (commercial)
-- **Whisky** — getwhisky.app
+- **Whisky** — getwhisky.app (archived; CiderDeck retains detection/launch support for existing installs)
 - **Apple Game Porting Toolkit (GPTK)** — apple.com (Apple proprietary)
 
 ### Doom-family source ports

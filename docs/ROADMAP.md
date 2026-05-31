@@ -121,6 +121,48 @@ Remaining for v0.4 (future iterations):
 - Improved handling for app bundles, mounted installers, and macOS storage
 - Stronger macOS-first diagnostics and log workflows
 
+### Whisky Absorption Notes
+
+With the [Whisky project archived](https://github.com/Whisky-App/Whisky),
+CiderDeck can absorb several workflow concepts that Whisky users will miss.
+The following were identified via a structured gap analysis and prioritized
+into three immediate tasks (see `docs/tasks-todo/`):
+
+**Absorb now (tasks 1–3):**
+
+1. **Bottle configuration panel** — per-bottle toggles for Enhanced Sync
+   (ESync/MSync), DXVK (on/off, async, HUD), Metal HUD/Trace, DXR,
+   AVX, and quick Wine tool launchers (winecfg, regedit, control panel).
+   Whisky's `ConfigView.swift` maps cleanly to env-var toggles.
+
+2. **Program discovery in bottles** — walk `Program Files/` for installed
+   `.exe` files, pin/blocklist management, per-program settings (locale,
+   args, env vars). Whisky auto-pins from Start Menu `.lnk` parsing.
+
+3. **Wine tools and diagnostics** — kill wineserver, clear shader caches,
+   structured log headers with runtime metadata, 7-day log rotation.
+
+**Adapt later (v0.6+):**
+
+- macOS `.app` bundle shortcut generation for pinned games (Whisky's
+  `ProgramShortcut.swift` — requires Info.plist generation, icon
+  extraction, and `LSApplicationCategoryType = games` for Game Mode)
+- PE icon extraction from `.exe` files for program list icons
+  (Whisky parses PE `.rsrc` sections; Rust `pelite` crate equivalent)
+- Winetricks integration with verb catalog, managed subprocess
+  execution, and installed-verb tracking per bottle
+- DPI slider and Retina mode configuration
+- Terminal integration (open shell with Wine env pre-configured)
+- File association handler (double-click `.exe` in Finder → pick bottle)
+
+**Do not absorb:**
+
+- WhiskyWine bundled Wine builds (CiderDeck detects installed runtimes)
+- Whisky branding, UI styling, or Sparkle update framework
+- plist-based settings storage (CiderDeck uses JSON sidecars)
+- Any code that would require proprietary dependencies or Apple-only APIs
+  not available through Tauri
+
 ## v0.7 — Community and Ecosystem Integrations
 
 - Import/export shareable profile manifests
