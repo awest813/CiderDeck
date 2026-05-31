@@ -5,8 +5,10 @@ import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CompatibilityEnvToggles } from '@/components/CompatibilityEnvToggles'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { PresetPickerDialog } from '@/components/PresetPickerDialog'
+import { RendererToggleGroup } from '@/components/RendererToggleGroup'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -21,7 +23,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useRuntimeDetection } from '@/hooks/use-runtime-detection'
 import { helperLabel } from '@/lib/helper-catalog'
-import { applyPreset, type CompatibilityPreset } from '@/lib/compatibility-presets'
+import {
+  applyPreset,
+  type CompatibilityPreset,
+} from '@/lib/compatibility-presets'
+import {
+  normalizeRenderer,
+  setProfileRenderer,
+  type CompatibilityRenderer,
+} from '@/lib/compatibility-toggles'
 import {
   getCurrentRuntimeBackend,
   getQuickRuntimeOptions,
@@ -119,18 +129,48 @@ export function GameDetailPanel({
     }
   }
 
-  const handleApplyPreset = (
+  const applyProfileChange = (
     profile: CompatibilityProfile,
-    preset: CompatibilityPreset
+    next: CompatibilityProfile,
+    message: string
   ) => {
     const previous = profile
-    onUpdateProfile(applyPreset(profile, preset))
-    toast.success(`Applied preset "${preset.name}"`, {
+    onUpdateProfile(next)
+    toast.success(message, {
       action: {
         label: 'Undo',
         onClick: () => onUpdateProfile(previous),
       },
     })
+  }
+
+  const handleApplyPreset = (
+    profile: CompatibilityProfile,
+    preset: CompatibilityPreset
+  ) => {
+    applyProfileChange(
+      profile,
+      applyPreset(profile, preset),
+      `Applied preset "${preset.name}"`
+    )
+  }
+
+  const handleRendererChange = (
+    profile: CompatibilityProfile,
+    renderer: CompatibilityRenderer | undefined
+  ) => {
+    applyProfileChange(
+      profile,
+      setProfileRenderer(profile, renderer),
+      'Updated renderer'
+    )
+  }
+
+  const handleCompatibilityProfileChange = (
+    profile: CompatibilityProfile,
+    next: CompatibilityProfile
+  ) => {
+    applyProfileChange(profile, next, 'Updated compatibility settings')
   }
 
   return (
@@ -319,80 +359,99 @@ export function GameDetailPanel({
               return (
                 <div
                   key={profile.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border bg-card p-2 shadow-sm transition-all duration-200 hover:shadow-md"
+                  className="space-y-2 rounded-xl border bg-card p-2 shadow-sm transition-all duration-200 hover:shadow-md"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm">{profile.title}</p>
-                    {isCompatibilityProfile(profile) ? (
-                      <p className="text-xs text-muted-foreground">
-                        Runtime:{' '}
-                        {helperLabel(getCurrentRuntimeBackend(profile))}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {isCompatibilityProfile(profile) ? (
-                      <PresetPickerDialog
-                        trigger={
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                          >
-                            Apply preset…
-                          </Button>
-                        }
-                        onApply={preset => handleApplyPreset(profile, preset)}
-                      />
-                    ) : null}
-                    {runtimeOptions.length > 0 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            disabled={launching}
-                          >
-                            Try with…
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>
-                            Quick runtime switch
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {runtimeOptions.map(option => (
-                            <DropdownMenuItem
-                              key={option.id}
-                              disabled={launching || !option.available}
-                              onClick={() =>
-                                void handleLaunchWithRuntime(
-                                  profile.id,
-                                  option.id
-                                )
-                              }
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm">{profile.title}</p>
+                      {isCompatibilityProfile(profile) ? (
+                        <p className="text-xs text-muted-foreground">
+                          Runtime:{' '}
+                          {helperLabel(getCurrentRuntimeBackend(profile))}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {isCompatibilityProfile(profile) ? (
+                        <PresetPickerDialog
+                          trigger={
+                            <Button type="button" size="sm" variant="outline">
+                              Apply preset…
+                            </Button>
+                          }
+                          onApply={preset => handleApplyPreset(profile, preset)}
+                        />
+                      ) : null}
+                      {runtimeOptions.length > 0 ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={launching}
                             >
-                              {option.label}
-                              {!option.available ? (
-                                <DropdownMenuShortcut>
-                                  Not found
-                                </DropdownMenuShortcut>
-                              ) : null}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : null}
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => toggleProfile(profile.id)}
-                    >
-                      Unlink
-                    </Button>
+                              Try with…
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>
+                              Quick runtime switch
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {runtimeOptions.map(option => (
+                              <DropdownMenuItem
+                                key={option.id}
+                                disabled={launching || !option.available}
+                                onClick={() =>
+                                  void handleLaunchWithRuntime(
+                                    profile.id,
+                                    option.id
+                                  )
+                                }
+                              >
+                                {option.label}
+                                {!option.available ? (
+                                  <DropdownMenuShortcut>
+                                    Not found
+                                  </DropdownMenuShortcut>
+                                ) : null}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : null}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => toggleProfile(profile.id)}
+                      >
+                        Unlink
+                      </Button>
+                    </div>
                   </div>
+                  {isCompatibilityProfile(profile) ? (
+                    <div className="space-y-2 border-t pt-2">
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Renderer
+                        </p>
+                        <RendererToggleGroup
+                          value={normalizeRenderer(profile.renderer)}
+                          onChange={renderer =>
+                            handleRendererChange(profile, renderer)
+                          }
+                        />
+                      </div>
+                      <CompatibilityEnvToggles
+                        profile={profile}
+                        onChange={next =>
+                          handleCompatibilityProfileChange(profile, next)
+                        }
+                      />
+                    </div>
+                  ) : null}
                 </div>
               )
             })

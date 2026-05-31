@@ -2,8 +2,10 @@
 
 import type { RuntimeKind } from '@/runtimes/types'
 import type { CompatibilityProfile } from '@/types/Profile'
+import crossoverPreset from '@/presets/crossover-default.json'
 import dxmtPreset from '@/presets/dx11-dxmt.json'
 import gptkPreset from '@/presets/gptk-experimental.json'
+import whiskyPreset from '@/presets/whisky-dxmt.json'
 import wineBasicPreset from '@/presets/wine-basic.json'
 
 export interface CompatibilityPreset {
@@ -17,8 +19,10 @@ export interface CompatibilityPreset {
 }
 
 export const COMPATIBILITY_PRESETS: readonly CompatibilityPreset[] = [
+  crossoverPreset as CompatibilityPreset,
   dxmtPreset as CompatibilityPreset,
   gptkPreset as CompatibilityPreset,
+  whiskyPreset as CompatibilityPreset,
   wineBasicPreset as CompatibilityPreset,
 ]
 
@@ -38,7 +42,8 @@ export const applyPreset = (
   preset: CompatibilityPreset
 ): CompatibilityProfile => ({
   ...profile,
-  runtimeProviderId: preset.runtimeKind as CompatibilityProfile['runtimeProviderId'],
+  runtimeProviderId:
+    preset.runtimeKind as CompatibilityProfile['runtimeProviderId'],
   renderer: preset.renderer ?? profile.renderer,
   environmentVariables: {
     ...(profile.environmentVariables ?? {}),

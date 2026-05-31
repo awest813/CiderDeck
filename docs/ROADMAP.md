@@ -93,10 +93,24 @@ Remaining for v0.4 (future iterations):
 
 ## v0.5 — Proton-Style Convenience
 
-- Curated presets for common runtime/game scenarios
-- One-click compatibility toggles and known-good recipes
-- Easy runtime switching ("try with Whisky", "try with GPTK", "try with Wine")
-- Rollback-safe profile/bottle changes for low-risk experimentation
+**Phase A** ✅ Complete — curated presets and quick runtime switching:
+
+- Bundled compatibility presets (Wine, DXMT, GPTK, Whisky, CrossOver)
+- `PresetPickerDialog` in profile forms and game library linked profiles
+- Quick runtime switching ("Try with…") from `GameDetailPanel`
+- Rollback-safe preset apply via toast undo
+
+**Phase B** ✅ Complete — one-click toggles from the game library:
+
+- Shared `RendererToggleGroup` for profile forms and linked profiles
+- `CompatibilityEnvToggles` for common env recipes (e.g. quiet Wine logs)
+- Undo-safe renderer and env changes from `GameDetailPanel`
+
+Remaining for v0.5 (future iterations):
+
+- Additional curated presets and per-game recipe hints
+- Rollback snapshots for bottle-level experiments
+- Preset filtering by detected runtime / game tags
 
 ## v0.6 — macOS-Native Compatibility Experience
 
