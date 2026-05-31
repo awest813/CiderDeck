@@ -23,6 +23,9 @@
 
 export { commands, type Result } from './bindings'
 export type {
+  BottleConfig,
+  BottleDxvkHud,
+  BottleEnhancedSync,
   AppPreferences,
   Bottle,
   BottleHealth,

@@ -35,6 +35,7 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         bottle::export_bottle,
         bottle::import_bottle,
         bottle::save_bottle_notes,
+        bottle::save_bottle_config,
         bottle::delete_bottle,
         bottle::detect_games_from_bottles,
         game::list_games,

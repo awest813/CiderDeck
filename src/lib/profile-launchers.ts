@@ -16,7 +16,9 @@ import type {
   OpenXcomProfile,
   QuakeProfile,
 } from '@/types/Profile'
+import { buildBottleConfigEnv } from '@/lib/bottle-config'
 import { getRuntimeProvider } from '@/lib/runtime-providers'
+import { commands } from '@/lib/tauri-bindings'
 
 export const DEFAULT_WINE_PROGRAM = 'wine'
 export const DEFAULT_WHISKY_WINE_PATH =
@@ -41,6 +43,21 @@ const cleanEnv = (
 
 export class LaunchRequestError extends Error {}
 
+async function loadBottleConfigEnv(
+  profile: CompatibilityProfile
+): Promise<Record<string, string>> {
+  const bottlePath = profile.winePrefixPath ?? profile.bottlePath
+  if (!bottlePath) return {}
+
+  try {
+    const result = await commands.getBottleMeta(bottlePath)
+    if (result.status === 'error') return {}
+    return buildBottleConfigEnv(result.data.config)
+  } catch {
+    return {}
+  }
+}
+
 export async function buildCompatibilityLaunchRequest(
   profile: CompatibilityProfile
 ): Promise<LaunchRequest> {
@@ -57,6 +74,7 @@ export async function buildCompatibilityLaunchRequest(
   }
 
   const envVars: Record<string, string> = {
+    ...(await loadBottleConfigEnv(profile)),
     ...(profile.environmentVariables ?? {}),
   }
   if (profile.windowsVersion) {

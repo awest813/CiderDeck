@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef, useState } from 'react'
+import { BottleConfigPanel } from '@/components/BottleConfigPanel'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -556,6 +557,8 @@ function BottleCard({ bottle, onRefresh }: BottleCardProps) {
           </div>
         </div>
       ) : null}
+
+      <BottleConfigPanel bottle={bottle} onRefresh={onRefresh} />
 
       {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
 

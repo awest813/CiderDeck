@@ -22,9 +22,46 @@ const SIDECAR_FILE: &str = ".ciderdeck-meta.json";
 
 /// Per-bottle metadata stored in a sidecar file inside the bottle directory.
 /// Survives detection scans and persists user notes and compatibility info.
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub enum BottleEnhancedSync {
+    Esync,
+    Msync,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq)]
+pub enum BottleDxvkHud {
+    Fps,
+    Partial,
+    Full,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq, Eq, Default)]
+pub struct BottleConfig {
+    pub enhanced_sync: Option<BottleEnhancedSync>,
+    pub dxvk_async: Option<bool>,
+    pub dxvk_hud: Option<BottleDxvkHud>,
+    pub metal_hud: Option<bool>,
+    pub metal_trace: Option<bool>,
+    pub dxr: Option<bool>,
+    pub avx: Option<bool>,
+}
+
+impl BottleConfig {
+    fn is_empty(&self) -> bool {
+        self.enhanced_sync.is_none()
+            && self.dxvk_async.is_none()
+            && self.dxvk_hud.is_none()
+            && self.metal_hud.is_none()
+            && self.metal_trace.is_none()
+            && self.dxr.is_none()
+            && self.avx.is_none()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct BottleSidecar {
     notes: Option<String>,
+    config: Option<BottleConfig>,
 }
 
 fn read_bottle_sidecar(bottle_path: &Path) -> BottleSidecar {
@@ -90,6 +127,8 @@ pub struct Bottle {
     pub storage_bytes: Option<u64>,
     /// User-editable notes
     pub notes: Option<String>,
+    /// User-editable bottle configuration persisted in the sidecar
+    pub config: Option<BottleConfig>,
     /// Health assessment
     pub health: BottleHealth,
 }
@@ -321,6 +360,7 @@ fn detect_wine_bottle(path: &Path, name: &str) -> Bottle {
         installed_components: components,
         storage_bytes: storage,
         notes: sidecar.notes,
+        config: sidecar.config,
         health,
     }
 }
@@ -423,6 +463,7 @@ fn scan_whisky_bottles() -> Vec<Bottle> {
                     installed_components: components,
                     storage_bytes: storage,
                     notes: sidecar.notes,
+                    config: sidecar.config,
                     health: if valid {
                         BottleHealth::Good
                     } else {
@@ -493,6 +534,7 @@ fn scan_crossover_bottles() -> Vec<Bottle> {
                     installed_components: components,
                     storage_bytes: storage,
                     notes: sidecar.notes,
+                    config: sidecar.config,
                     health: BottleHealth::Good,
                 });
             }
@@ -545,6 +587,7 @@ fn scan_gptk_bottles() -> Vec<Bottle> {
                 installed_components: components,
                 storage_bytes: storage,
                 notes: sidecar.notes,
+                config: sidecar.config,
                 health: BottleHealth::Good,
             });
         }
@@ -908,6 +951,7 @@ pub async fn get_bottle_meta(bottle_path: String) -> Result<Bottle, String> {
         installed_components: components,
         storage_bytes: storage,
         notes: sidecar.notes,
+        config: sidecar.config,
         health,
     })
 }
@@ -974,6 +1018,7 @@ pub async fn create_bottle(
         installed_components: Vec::new(),
         storage_bytes: dir_size(&path_buf),
         notes: None,
+        config: None,
         health: BottleHealth::Good,
     })
 }
@@ -1111,6 +1156,7 @@ pub async fn clone_bottle(
         installed_components: get_installed_components(&dst),
         storage_bytes: dir_size(&dst),
         notes: sidecar.notes,
+        config: sidecar.config,
         health,
     })
 }
@@ -1226,6 +1272,7 @@ pub async fn reset_bottle(
         installed_components: Vec::new(),
         storage_bytes: dir_size(&canonical),
         notes: sidecar.notes,
+        config: sidecar.config,
         health: BottleHealth::Good,
     })
 }
@@ -1346,6 +1393,7 @@ pub async fn import_bottle(
         installed_components: get_installed_components(&dest),
         storage_bytes: dir_size(&dest),
         notes: sidecar.notes,
+        config: sidecar.config,
         health,
     })
 }
@@ -1362,14 +1410,32 @@ pub async fn save_bottle_notes(bottle_path: String, notes: String) -> Result<(),
         return Err("Bottle path does not exist.".to_string());
     }
 
-    let sidecar = BottleSidecar {
-        notes: if notes.trim().is_empty() {
-            None
-        } else {
-            Some(notes)
-        },
+    let mut sidecar = read_bottle_sidecar(path);
+    sidecar.notes = if notes.trim().is_empty() {
+        None
+    } else {
+        Some(notes)
     };
 
+    write_bottle_sidecar(path, &sidecar)
+}
+
+/// Persist user-provided bottle configuration in the sidecar file.
+#[tauri::command]
+#[specta::specta]
+pub async fn save_bottle_config(
+    bottle_path: String,
+    config: BottleConfig,
+) -> Result<(), String> {
+    log::debug!("Saving config for bottle at: {bottle_path}");
+
+    let path = Path::new(&bottle_path);
+    if !path.is_dir() {
+        return Err("Bottle path does not exist.".to_string());
+    }
+
+    let mut sidecar = read_bottle_sidecar(path);
+    sidecar.config = if config.is_empty() { None } else { Some(config) };
     write_bottle_sidecar(path, &sidecar)
 }
 
@@ -1417,16 +1483,48 @@ mod tests {
         // Reading from a directory with no sidecar returns empty default
         let initial = read_bottle_sidecar(path);
         assert!(initial.notes.is_none());
+        assert!(initial.config.is_none());
 
         // Write notes
         let sidecar = BottleSidecar {
             notes: Some("test notes".to_string()),
+            config: Some(BottleConfig {
+                enhanced_sync: Some(BottleEnhancedSync::Msync),
+                dxvk_async: Some(true),
+                dxvk_hud: Some(BottleDxvkHud::Partial),
+                metal_hud: None,
+                metal_trace: Some(false),
+                dxr: Some(true),
+                avx: None,
+            }),
         };
         write_bottle_sidecar(path, &sidecar).unwrap();
 
         // Read them back
         let loaded = read_bottle_sidecar(path);
         assert_eq!(loaded.notes.as_deref(), Some("test notes"));
+        assert_eq!(
+            loaded.config,
+            Some(BottleConfig {
+                enhanced_sync: Some(BottleEnhancedSync::Msync),
+                dxvk_async: Some(true),
+                dxvk_hud: Some(BottleDxvkHud::Partial),
+                metal_hud: None,
+                metal_trace: Some(false),
+                dxr: Some(true),
+                avx: None,
+            })
+        );
+    }
+
+    #[test]
+    fn test_bottle_config_empty_detection() {
+        assert!(BottleConfig::default().is_empty());
+        assert!(!BottleConfig {
+            enhanced_sync: Some(BottleEnhancedSync::Esync),
+            ..BottleConfig::default()
+        }
+        .is_empty());
     }
 
     #[test]

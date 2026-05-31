@@ -78,6 +78,11 @@ vi.mock('@/lib/tauri-bindings', () => ({
     }),
     saveLog: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
     readLogs: vi.fn().mockResolvedValue({ status: 'ok', data: [] }),
+    getBottleMeta: vi.fn().mockResolvedValue({
+      status: 'ok',
+      data: { config: null },
+    }),
+    saveBottleConfig: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
     listGames: vi.fn().mockResolvedValue({ status: 'ok', data: [] }),
     saveGame: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
     deleteGame: vi.fn().mockResolvedValue({ status: 'ok', data: null }),
