@@ -45,6 +45,22 @@ describe('COMPATIBILITY_PRESETS', () => {
   })
 })
 
+describe('groupPresetsByRuntime', () => {
+  it('returns all presets as recommended when runtime is omitted', () => {
+    const groups = groupPresetsByRuntime()
+    expect(groups.recommended).toHaveLength(COMPATIBILITY_PRESETS.length)
+    expect(groups.other).toHaveLength(0)
+  })
+
+  it('splits presets by matching runtime', () => {
+    const groups = groupPresetsByRuntime('wine')
+    expect(groups.recommended.every(p => p.runtimeKind === 'wine')).toBe(true)
+    expect(groups.other.every(p => p.runtimeKind !== 'wine')).toBe(true)
+    expect(groups.recommended.length).toBeGreaterThan(0)
+    expect(groups.other.length).toBeGreaterThan(0)
+  })
+})
+
 describe('getPreset', () => {
   it('returns a preset by id', () => {
     const preset = getPreset('dx11-dxmt')
