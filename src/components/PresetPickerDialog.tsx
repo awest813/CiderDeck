@@ -28,6 +28,7 @@ import {
   type CompatibilityPreset,
 } from '@/lib/compatibility-presets'
 import type { HelperId } from '@/types/Profile'
+import type { GamePresetContext } from '@/lib/preset-game-matching'
 import type { RuntimeKind } from '@/runtimes/types'
 
 interface PresetPickerDialogProps {
@@ -37,6 +38,8 @@ interface PresetPickerDialogProps {
   runtimeKind?: RuntimeKind
   /** When set, game-specific presets (e.g. Fallout 3 GOTY) are listed first. */
   gameTitle?: string
+  /** Library game context for store-aware priority presets. */
+  game?: GamePresetContext
 }
 
 function PresetRow({
@@ -86,13 +89,15 @@ export function PresetPickerDialog({
   onApply,
   runtimeKind,
   gameTitle,
+  game,
 }: PresetPickerDialogProps) {
   const [open, setOpen] = useState(false)
   const [pendingPreset, setPendingPreset] =
     useState<CompatibilityPreset | null>(null)
   const { priority, recommended, other } = groupPresetsForPicker({
     runtimeKind,
-    gameTitle,
+    gameTitle: game?.title ?? gameTitle,
+    game,
   })
 
   const handleApply = (preset: CompatibilityPreset) => {

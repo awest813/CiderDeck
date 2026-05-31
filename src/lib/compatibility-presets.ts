@@ -2,6 +2,10 @@
 
 import type { RuntimeKind } from '@/runtimes/types'
 import type { CompatibilityProfile } from '@/types/Profile'
+import {
+  presetMatchesGameContext,
+  type GamePresetContext,
+} from '@/lib/preset-game-matching'
 import crossoverPreset from '@/presets/crossover-default.json'
 import dxmtPreset from '@/presets/dx11-dxmt.json'
 import fallout3GotyPreset from '@/presets/fallout-3-goty.json'
@@ -17,6 +21,10 @@ export interface CompatibilityPreset {
   runtimeKind: RuntimeKind
   /** Case-insensitive substrings; preset is prioritized when the game title contains any. */
   gameTitlePatterns?: string[]
+  steamAppIds?: string[]
+  gogGameIds?: string[]
+  epicAppNames?: string[]
+  installPathPatterns?: string[]
   env?: Record<string, string>
   renderer?: CompatibilityProfile['renderer']
   windowsVersion?: CompatibilityProfile['windowsVersion']
@@ -37,16 +45,14 @@ export const COMPATIBILITY_PRESETS: readonly CompatibilityPreset[] = [
 export const getPreset = (id: string): CompatibilityPreset | undefined =>
   COMPATIBILITY_PRESETS.find(p => p.id === id)
 
+export type { GamePresetContext } from '@/lib/preset-game-matching'
+export { launcherStoreIdTag, presetMatchesGameContext } from '@/lib/preset-game-matching'
+
+/** @deprecated Use presetMatchesGameContext */
 export const presetMatchesGameTitle = (
   preset: CompatibilityPreset,
   gameTitle: string
-): boolean => {
-  const normalized = gameTitle.trim().toLowerCase()
-  if (!normalized || !preset.gameTitlePatterns?.length) return false
-  return preset.gameTitlePatterns.some(pattern =>
-    normalized.includes(pattern.toLowerCase())
-  )
-}
+): boolean => presetMatchesGameContext(preset, { title: gameTitle })
 
 export interface PresetGroups {
   recommended: CompatibilityPreset[]
@@ -78,11 +84,16 @@ export interface PresetPickerGroups extends PresetGroups {
 export const groupPresetsForPicker = (options?: {
   runtimeKind?: RuntimeKind
   gameTitle?: string
+  game?: GamePresetContext
 }): PresetPickerGroups => {
-  const gameTitle = options?.gameTitle?.trim() ?? ''
-  const priority = gameTitle
+  const context: GamePresetContext | undefined = options?.game ?? (
+    options?.gameTitle?.trim()
+      ? { title: options.gameTitle.trim() }
+      : undefined
+  )
+  const priority = context
     ? COMPATIBILITY_PRESETS.filter(preset =>
-        presetMatchesGameTitle(preset, gameTitle)
+        presetMatchesGameContext(preset, context)
       )
     : []
   const priorityIds = new Set(priority.map(preset => preset.id))

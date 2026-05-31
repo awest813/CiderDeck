@@ -1,13 +1,22 @@
 {
   "id": "fallout-3-goty",
   "name": "Fallout 3: GOTY Edition",
-  "description": "DX9 preset for Fallout 3 GOTY (wined3d, Windows 7). If launch fails, place a native xlive.dll in the game folder.",
+  "description": "Curated for Steam, GOG, and Epic installs. DX9 via wined3d on Windows 7 with GFWL DLL overrides. If the game crashes at launch, add a native xlive.dll beside Fallout3.exe and use a 4:3 virtual desktop in winecfg for mouse issues.",
   "runtimeKind": "wine",
   "gameTitlePatterns": [
     "fallout 3",
     "fallout iii",
     "fallout: game of the year",
+    "fallout 3 game of the year",
     "fallout 3 goty"
+  ],
+  "steamAppIds": ["22370"],
+  "gogGameIds": ["1454315831"],
+  "epicAppNames": ["adeae8bbfc94427db57c7dfecce3f1d4"],
+  "installPathPatterns": [
+    "fallout 3",
+    "fallout3",
+    "fallout_3_game_of_the_year"
   ],
   "env": {
     "WINEDEBUG": "-all"
@@ -16,6 +25,7 @@
   "windowsVersion": "win7",
   "dllOverrides": {
     "msasn1": "native,builtin",
-    "xlive": "native"
+    "xlive": "native",
+    "d3dcompiler_43": "native"
   }
 }
