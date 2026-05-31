@@ -12,8 +12,15 @@ export interface BottleChoiceOption<T extends string> {
   description: string
 }
 
+export type BottleConfigBooleanKey =
+  | 'dxvk_async'
+  | 'metal_hud'
+  | 'metal_trace'
+  | 'dxr'
+  | 'avx'
+
 export interface BottleBooleanToggle {
-  id: keyof BottleConfig
+  id: BottleConfigBooleanKey
   label: string
   description: string
 }
@@ -100,8 +107,18 @@ export const BOTTLE_WINDOWS_VERSION_OPTIONS = [
   'winxp',
 ] as const
 
+export const emptyBottleConfig = (): BottleConfig => ({
+  enhanced_sync: null,
+  dxvk_async: null,
+  dxvk_hud: null,
+  metal_hud: null,
+  metal_trace: null,
+  dxr: null,
+  avx: null,
+})
+
 export const buildBottleConfigEnv = (
-  config?: BottleConfig | null
+  config?: Partial<BottleConfig> | null
 ): Record<string, string> => {
   if (!config) return {}
 
@@ -143,9 +160,10 @@ export const buildBottleConfigEnv = (
 }
 
 export const normalizeBottleConfig = (
-  config: BottleConfig
+  config: Partial<BottleConfig>
 ): BottleConfig | null => {
   const normalized: BottleConfig = {
+    ...emptyBottleConfig(),
     enhanced_sync: config.enhanced_sync ?? null,
     dxvk_async: config.dxvk_async ?? null,
     dxvk_hud: config.dxvk_hud ?? null,
@@ -155,7 +173,9 @@ export const normalizeBottleConfig = (
     avx: config.avx ?? null,
   }
 
-  return Object.values(normalized).some(value => value !== null) ? normalized : null
+  return Object.values(normalized).some(value => value !== null)
+    ? normalized
+    : null
 }
 
 export const wineExecutableForRuntime = (runtime: string): string => {

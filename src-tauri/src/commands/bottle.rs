@@ -1423,10 +1423,7 @@ pub async fn save_bottle_notes(bottle_path: String, notes: String) -> Result<(),
 /// Persist user-provided bottle configuration in the sidecar file.
 #[tauri::command]
 #[specta::specta]
-pub async fn save_bottle_config(
-    bottle_path: String,
-    config: BottleConfig,
-) -> Result<(), String> {
+pub async fn save_bottle_config(bottle_path: String, config: BottleConfig) -> Result<(), String> {
     log::debug!("Saving config for bottle at: {bottle_path}");
 
     let path = Path::new(&bottle_path);
@@ -1435,7 +1432,11 @@ pub async fn save_bottle_config(
     }
 
     let mut sidecar = read_bottle_sidecar(path);
-    sidecar.config = if config.is_empty() { None } else { Some(config) };
+    sidecar.config = if config.is_empty() {
+        None
+    } else {
+        Some(config)
+    };
     write_bottle_sidecar(path, &sidecar)
 }
 

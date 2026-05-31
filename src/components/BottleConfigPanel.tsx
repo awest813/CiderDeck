@@ -17,6 +17,7 @@ import {
   BOTTLE_DXVK_HUD_OPTIONS,
   BOTTLE_ENHANCED_SYNC_OPTIONS,
   BOTTLE_WINDOWS_VERSION_OPTIONS,
+  emptyBottleConfig,
   normalizeBottleConfig,
   wineExecutableForRuntime,
 } from '@/lib/bottle-config'
@@ -36,23 +37,25 @@ export function BottleConfigPanel({
   onRefresh,
 }: BottleConfigPanelProps) {
   const [open, setOpen] = useState(false)
-  const [config, setConfig] = useState<BottleConfig>(bottle.config ?? {})
+  const [config, setConfig] = useState<BottleConfig>(
+    bottle.config ?? emptyBottleConfig()
+  )
   const [windowsVersion, setWindowsVersion] = useState(
     bottle.windows_version ?? DEFAULT_WINDOWS_VERSION
   )
   const [saving, setSaving] = useState(false)
-  const [runningTool, setRunningTool] = useState<WineTool | 'windows-version' | null>(
-    null
-  )
+  const [runningTool, setRunningTool] = useState<
+    WineTool | 'windows-version' | null
+  >(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setConfig(bottle.config ?? {})
+    setConfig(bottle.config ?? emptyBottleConfig())
     setWindowsVersion(bottle.windows_version ?? DEFAULT_WINDOWS_VERSION)
   }, [bottle.config, bottle.windows_version])
 
   const updateConfig = (partial: Partial<BottleConfig>) => {
-    setConfig(current => ({ ...current, ...partial }))
+    setConfig((current: BottleConfig) => ({ ...current, ...partial }))
   }
 
   const handleSave = async () => {
@@ -61,7 +64,7 @@ export function BottleConfigPanel({
     try {
       const result = await commands.saveBottleConfig(
         bottle.path,
-        normalizeBottleConfig(config) ?? {}
+        normalizeBottleConfig(config) ?? emptyBottleConfig()
       )
       if (result.status === 'error') {
         setError(result.error)
@@ -90,7 +93,10 @@ export function BottleConfigPanel({
         return
       }
       if (result.data.exit_code && result.data.exit_code !== 0) {
-        setError(result.data.stderr || `${tool} exited with code ${result.data.exit_code}`)
+        setError(
+          result.data.stderr ||
+            `${tool} exited with code ${result.data.exit_code}`
+        )
       }
     } catch (nextError) {
       setError(String(nextError))
@@ -157,7 +163,9 @@ export function BottleConfigPanel({
               onValueChange={value =>
                 updateConfig({
                   enhanced_sync:
-                    value === 'none' ? null : (value as BottleConfig['enhanced_sync']),
+                    value === 'none'
+                      ? null
+                      : (value as BottleConfig['enhanced_sync']),
                 })
               }
               className="grid gap-2"
@@ -167,7 +175,10 @@ export function BottleConfigPanel({
                   key={option.value}
                   className="flex items-start gap-3 rounded-lg border px-3 py-2"
                 >
-                  <RadioGroupItem value={option.value} id={`${bottle.id}-${option.value}`} />
+                  <RadioGroupItem
+                    value={option.value}
+                    id={`${bottle.id}-${option.value}`}
+                  />
                   <div className="space-y-0.5">
                     <div className="text-xs font-medium">{option.label}</div>
                     <p className="text-xs text-muted-foreground">
@@ -186,7 +197,9 @@ export function BottleConfigPanel({
               onValueChange={value =>
                 updateConfig({
                   dxvk_hud:
-                    value === 'off' ? null : (value as BottleConfig['dxvk_hud']),
+                    value === 'off'
+                      ? null
+                      : (value as BottleConfig['dxvk_hud']),
                 })
               }
               className="grid gap-2"
@@ -231,7 +244,9 @@ export function BottleConfigPanel({
                     id={id}
                     checked={config[toggle.id] === true}
                     onCheckedChange={checked =>
-                      updateConfig({ [toggle.id]: checked } as Partial<BottleConfig>)
+                      updateConfig({
+                        [toggle.id]: checked,
+                      } as Partial<BottleConfig>)
                     }
                   />
                 </div>
@@ -318,7 +333,7 @@ export function BottleConfigPanel({
               size="sm"
               className="h-8 text-xs"
               onClick={() => {
-                setConfig(bottle.config ?? {})
+                setConfig(bottle.config ?? emptyBottleConfig())
                 setWindowsVersion(
                   bottle.windows_version ?? DEFAULT_WINDOWS_VERSION
                 )
