@@ -372,6 +372,12 @@ export function GameDetailPanel({
                             </Button>
                           }
                           runtimeKind={getCurrentRuntimeBackend(profile)}
+                          game={{
+                            title: game.title,
+                            importSource: game.importSource,
+                            tags: game.tags,
+                            installPath: game.installPath,
+                          }}
                           onApply={preset => handleApplyPreset(profile, preset)}
                         />
                       ) : null}

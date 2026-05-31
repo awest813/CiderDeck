@@ -6,6 +6,8 @@ import {
   applyPreset,
   getPreset,
   groupPresetsByRuntime,
+  groupPresetsForPicker,
+  launcherStoreIdTag,
 } from '@/lib/compatibility-presets'
 import type { CompatibilityProfile } from '@/types/Profile'
 
@@ -30,11 +32,12 @@ const buildProfile = (
 describe('COMPATIBILITY_PRESETS', () => {
   it('contains all bundled presets', () => {
     const ids = COMPATIBILITY_PRESETS.map(p => p.id)
-    expect(COMPATIBILITY_PRESETS).toHaveLength(6)
+    expect(COMPATIBILITY_PRESETS).toHaveLength(7)
     expect(ids).toEqual(
       expect.arrayContaining([
         'crossover-default',
         'dx11-dxmt',
+        'fallout-3-goty',
         'gptk-experimental',
         'whisky-dxmt',
         'wine-basic',
@@ -50,6 +53,20 @@ describe('COMPATIBILITY_PRESETS', () => {
       expect(typeof preset.description).toBe('string')
       expect(typeof preset.runtimeKind).toBe('string')
     }
+  })
+})
+
+describe('groupPresetsForPicker', () => {
+  it('prioritizes Fallout preset for GOG import context', () => {
+    const groups = groupPresetsForPicker({
+      runtimeKind: 'wine',
+      game: {
+        title: 'Fallout 3: Game of the Year Edition',
+        importSource: 'GogLibrary',
+        tags: ['gog', launcherStoreIdTag('gog', '1454315831')],
+      },
+    })
+    expect(groups.priority.map(p => p.id)).toEqual(['fallout-3-goty'])
   })
 })
 
@@ -155,5 +172,27 @@ describe('applyPreset', () => {
     const profile = buildProfile({ renderer: 'moltenvk' })
     const result = applyPreset(profile, preset)
     expect(result.renderer).toBe('moltenvk')
+  })
+
+  it('applies windowsVersion and dllOverrides from Fallout 3 preset', () => {
+    const preset = getPreset('fallout-3-goty')
+    if (!preset) throw new Error('preset not found')
+    const result = applyPreset(buildProfile(), preset)
+    expect(result.windowsVersion).toBe('win7')
+    expect(result.dllOverrides).toMatchObject({
+      msasn1: 'native,builtin',
+      xlive: 'native',
+      d3dcompiler_43: 'native',
+    })
+  })
+})
+
+describe('presetMatchesGameContext integration', () => {
+  it('exposes store ids on the Fallout preset', () => {
+    const preset = getPreset('fallout-3-goty')
+    if (!preset) throw new Error('preset not found')
+    expect(preset.steamAppIds).toContain('22370')
+    expect(preset.gogGameIds).toContain('1454315831')
+    expect(preset.epicAppNames).toContain('adeae8bbfc94427db57c7dfecce3f1d4')
   })
 })

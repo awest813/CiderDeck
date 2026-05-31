@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
+import { launcherStoreIdTag } from '@/lib/preset-game-matching'
 import { ImportDialogFooter } from '@/components/ImportDialogFooter'
 import {
   useSteamDetection,
@@ -98,7 +99,7 @@ export function LauncherImportDialog({
           importSource: 'SteamLibrary',
           installPath: g.install_dir,
           artworkPath: null,
-          tags: ['steam'],
+          tags: ['steam', launcherStoreIdTag('steam', g.app_id)],
           notes: null,
           profileIds: [],
           extraArgs: [],
@@ -112,7 +113,7 @@ export function LauncherImportDialog({
           importSource: 'EpicLibrary',
           installPath: g.install_location,
           artworkPath: null,
-          tags: ['epic'],
+          tags: ['epic', launcherStoreIdTag('epic', g.app_name)],
           notes: null,
           profileIds: [],
           extraArgs: [],
@@ -126,7 +127,7 @@ export function LauncherImportDialog({
           importSource: 'GogLibrary',
           installPath: g.install_dir,
           artworkPath: null,
-          tags: ['gog'],
+          tags: ['gog', launcherStoreIdTag('gog', g.game_id)],
           notes: null,
           profileIds: [],
           extraArgs: [],
