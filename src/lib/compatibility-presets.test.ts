@@ -29,8 +29,10 @@ const buildProfile = (
 describe('COMPATIBILITY_PRESETS', () => {
   it('contains all bundled presets', () => {
     const ids = COMPATIBILITY_PRESETS.map(p => p.id)
+    expect(ids).toContain('crossover-default')
     expect(ids).toContain('dx11-dxmt')
     expect(ids).toContain('gptk-experimental')
+    expect(ids).toContain('whisky-dxmt')
     expect(ids).toContain('wine-basic')
   })
 
