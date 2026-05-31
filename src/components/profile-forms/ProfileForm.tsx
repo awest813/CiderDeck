@@ -21,6 +21,7 @@ import {
 } from '@/components/profile-forms/shared'
 import { helperLabel } from '@/lib/helper-catalog'
 import { COMPATIBILITY_BACKENDS } from '@/types/Profile'
+import { CompatibilityEnvToggles } from '@/components/CompatibilityEnvToggles'
 import { PresetPickerDialog } from '@/components/PresetPickerDialog'
 import { RendererToggleGroup } from '@/components/RendererToggleGroup'
 import type { CompatibilityPreset } from '@/lib/compatibility-presets'
@@ -155,10 +156,15 @@ const applyPresetToFormState = (
 ): FormState => {
   const existingEnv = parseEnvText(state.envVars) ?? {}
   const mergedEnv = { ...existingEnv, ...(preset.env ?? {}) }
+  const mergedDll = { ...parseEnvText(state.dllOverrides), ...(preset.dllOverrides ?? {}) }
   return {
     ...state,
     backend: preset.runtimeKind as CompatibilityBackend,
     renderer: preset.renderer ?? state.renderer,
+    windowsVersion: preset.windowsVersion ?? state.windowsVersion,
+    dllOverrides: stringifyEnv(
+      Object.keys(mergedDll).length > 0 ? mergedDll : undefined
+    ),
     envVars: stringifyEnv(mergedEnv),
     launchArgs:
       preset.launchArgs !== undefined
@@ -707,6 +713,11 @@ export function ProfileForm({
     [bottles, state.backend]
   )
 
+  const compatibilityDraft = useMemo((): CompatibilityProfile | null => {
+    if (!isCompatibilityHelper(helper)) return null
+    return buildProfile(helper, category, state, initial) as CompatibilityProfile
+  }, [helper, category, state, initial])
+
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setState(current => ({ ...current, [key]: value }))
 
@@ -717,9 +728,14 @@ export function ProfileForm({
   }
 
   const handleApplyPreset = (preset: CompatibilityPreset) => {
+    const previous = state
     setState(current => applyPresetToFormState(current, preset))
     toast.success(`Applied "${preset.name}"`, {
       description: 'Review the updated fields and save to keep these settings.',
+      action: {
+        label: 'Undo',
+        onClick: () => setState(previous),
+      },
     })
   }
 
@@ -741,6 +757,7 @@ export function ProfileForm({
                     Apply preset…
                   </Button>
                 }
+                runtimeKind={state.backend}
                 onApply={handleApplyPreset}
               />
             </div>
@@ -814,6 +831,14 @@ export function ProfileForm({
                 onChange={e => update('envVars', e.target.value)}
               />
             </Field>
+            {compatibilityDraft ? (
+              <CompatibilityEnvToggles
+                profile={compatibilityDraft}
+                onChange={next =>
+                  update('envVars', stringifyEnv(next.environmentVariables))
+                }
+              />
+            ) : null}
             <Field label="Windows version">
               <Select
                 value={state.windowsVersion}

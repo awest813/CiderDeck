@@ -87,13 +87,9 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 - Profile linking step with checkbox list; graceful fallback in non-Tauri environments
 - `+ Add Portable` toolbar button in `GameLibraryPage`
 
-**Phase E** ✅ Complete — installer-based game setup:
+Remaining for v0.4 (future iterations):
 
-- `GameInstallWizard` — guided flow (Installer → Bottle → Install → Discover → Details → Profiles)
-- `run_game_installer` Tauri command — runs `.exe` or `.msi` installers inside a bottle via Wine
-- `detect_games_for_bottle` — post-install executable discovery from a single prefix
-- Optional new-bottle creation, launch-profile auto-creation, and `Installer` import source label
-- `+ Install Game` toolbar button in `GameLibraryPage`
+- Install flows for installer-based games
 
 ## v0.5 — Proton-Style Convenience
 
@@ -104,20 +100,22 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 - Quick runtime switching ("Try with…") from `GameDetailPanel`
 - Rollback-safe preset apply via toast undo
 
-**Phase B** ✅ Complete — one-click toggles from the game library:
+**Phase B** ✅ Complete — one-click toggles in profile forms and game library:
 
 - Shared `RendererToggleGroup` for profile forms and linked profiles
-- `CompatibilityEnvToggles` for common env recipes (e.g. quiet Wine logs)
+- `CompatibilityEnvToggles` in profile forms and linked profiles (e.g. quiet Wine logs)
 - Undo-safe renderer and env changes from `GameDetailPanel`
 
-Remaining for v0.5 (future iterations):
+**Phase C** ✅ Complete — preset discovery and shared rollback:
 
-- Additional curated presets and per-game recipe hints
-- Rollback snapshots for bottle-level experiments
-- Preset filtering by detected runtime / game tags
+- Runtime-aware preset grouping in `PresetPickerDialog` (recommended vs other runtimes)
+- Six bundled presets including Whisky, CrossOver, and Wine + MoltenVK
+- Shared `applyCompatibilityProfileWithUndo` helper for toast-based profile rollback
+- Undo when applying presets in profile forms
 
 ## v0.6 — macOS-Native Compatibility Experience
 
+- Rollback-safe bottle/prefix changes (profile rollback shipped in v0.5)
 - Finder-focused UX polish: drag-and-drop, file associations, native paths
 - Better Apple Silicon vs Intel guidance and runtime requirement surfacing
 - Improved handling for app bundles, mounted installers, and macOS storage

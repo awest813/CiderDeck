@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,6 +31,7 @@ import {
   setProfileRenderer,
   type CompatibilityRenderer,
 } from '@/lib/compatibility-toggles'
+import { applyCompatibilityProfileWithUndo } from '@/lib/profile-rollback'
 import {
   getCurrentRuntimeBackend,
   getQuickRuntimeOptions,
@@ -129,29 +129,15 @@ export function GameDetailPanel({
     }
   }
 
-  const applyProfileChange = (
-    profile: CompatibilityProfile,
-    next: CompatibilityProfile,
-    message: string
-  ) => {
-    const previous = profile
-    onUpdateProfile(next)
-    toast.success(message, {
-      action: {
-        label: 'Undo',
-        onClick: () => onUpdateProfile(previous),
-      },
-    })
-  }
-
   const handleApplyPreset = (
     profile: CompatibilityProfile,
     preset: CompatibilityPreset
   ) => {
-    applyProfileChange(
+    applyCompatibilityProfileWithUndo(
       profile,
       applyPreset(profile, preset),
-      `Applied preset "${preset.name}"`
+      `Applied preset "${preset.name}"`,
+      onUpdateProfile
     )
   }
 
@@ -159,10 +145,11 @@ export function GameDetailPanel({
     profile: CompatibilityProfile,
     renderer: CompatibilityRenderer | undefined
   ) => {
-    applyProfileChange(
+    applyCompatibilityProfileWithUndo(
       profile,
       setProfileRenderer(profile, renderer),
-      'Updated renderer'
+      'Updated renderer',
+      onUpdateProfile
     )
   }
 
@@ -170,7 +157,12 @@ export function GameDetailPanel({
     profile: CompatibilityProfile,
     next: CompatibilityProfile
   ) => {
-    applyProfileChange(profile, next, 'Updated compatibility settings')
+    applyCompatibilityProfileWithUndo(
+      profile,
+      next,
+      'Updated compatibility settings',
+      onUpdateProfile
+    )
   }
 
   return (
@@ -379,6 +371,13 @@ export function GameDetailPanel({
                               Apply preset…
                             </Button>
                           }
+                          runtimeKind={getCurrentRuntimeBackend(profile)}
+                          game={{
+                            title: game.title,
+                            importSource: game.importSource,
+                            tags: game.tags,
+                            installPath: game.installPath,
+                          }}
                           onApply={preset => handleApplyPreset(profile, preset)}
                         />
                       ) : null}
