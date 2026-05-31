@@ -332,6 +332,22 @@ async deleteGame(gameId: string) : Promise<Result<null, string>> {
 async detectGamesFromBottles() : Promise<DetectedGame[]> {
     return await TAURI_INVOKE("detect_games_from_bottles");
 },
+async detectGamesForBottle(bottlePath: string) : Promise<Result<DetectedGame[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("detect_games_for_bottle", { bottlePath }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async runGameInstaller(installerPath: string, bottlePath: string, runtime: string) : Promise<Result<GameInstallerResult, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("run_game_installer", { installerPath, bottlePath, runtime }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async importGame(import_: GameImport) : Promise<Result<Game, string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("import_game", { import: import_ }) };
@@ -448,7 +464,8 @@ export type RecoveryError =
 /**
  * How the game was imported into the library.
  */
-export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi" | "SteamLibrary" | "EpicLibrary" | "GogLibrary"
+export type GameImportSource = "Manual" | "AppBundle" | "ExeMsi" | "Installer" | "SteamLibrary" | "EpicLibrary" | "GogLibrary"
+export type GameInstallerResult = { exitCode: number | null; stdout: string; stderr: string }
 /**
  * A game entry in the library.
  */
