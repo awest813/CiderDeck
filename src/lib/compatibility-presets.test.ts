@@ -5,7 +5,6 @@ import {
   COMPATIBILITY_PRESETS,
   applyPreset,
   getPreset,
-  groupPresetsByRuntime,
 } from '@/lib/compatibility-presets'
 import type { CompatibilityProfile } from '@/types/Profile'
 
@@ -30,9 +29,12 @@ const buildProfile = (
 describe('COMPATIBILITY_PRESETS', () => {
   it('contains all bundled presets', () => {
     const ids = COMPATIBILITY_PRESETS.map(p => p.id)
+    expect(ids).toContain('crossover-default')
     expect(ids).toContain('dx11-dxmt')
     expect(ids).toContain('gptk-experimental')
+    expect(ids).toContain('whisky-dxmt')
     expect(ids).toContain('wine-basic')
+    expect(ids).toContain('wine-moltenvk')
   })
 
   it('each preset has required fields', () => {
@@ -42,6 +44,22 @@ describe('COMPATIBILITY_PRESETS', () => {
       expect(typeof preset.description).toBe('string')
       expect(typeof preset.runtimeKind).toBe('string')
     }
+  })
+})
+
+describe('groupPresetsByRuntime', () => {
+  it('returns all presets as recommended when runtime is omitted', () => {
+    const groups = groupPresetsByRuntime()
+    expect(groups.recommended).toHaveLength(COMPATIBILITY_PRESETS.length)
+    expect(groups.other).toHaveLength(0)
+  })
+
+  it('splits presets by matching runtime', () => {
+    const groups = groupPresetsByRuntime('wine')
+    expect(groups.recommended.every(p => p.runtimeKind === 'wine')).toBe(true)
+    expect(groups.other.every(p => p.runtimeKind !== 'wine')).toBe(true)
+    expect(groups.recommended.length).toBeGreaterThan(0)
+    expect(groups.other.length).toBeGreaterThan(0)
   })
 })
 
