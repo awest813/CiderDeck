@@ -116,8 +116,8 @@ fn parse_library_folders(vdf_path: &std::path::Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     for line in text.lines() {
         let trimmed = line.trim();
-        if trimmed.starts_with("\"path\"") {
-            let after = trimmed["\"path\"".len()..].trim();
+        if let Some(after) = trimmed.strip_prefix("\"path\"") {
+            let after = after.trim();
             if after.starts_with('"') && after.ends_with('"') && after.len() >= 2 {
                 let raw = &after[1..after.len() - 1];
                 let lib_path = PathBuf::from(raw).join("steamapps");

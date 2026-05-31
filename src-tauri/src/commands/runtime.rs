@@ -32,18 +32,22 @@ pub struct RuntimeInfo {
 // Wine Detection
 // ============================================================================
 
+#[allow(dead_code)]
 pub(crate) fn detect_wine_pub() -> RuntimeInfo {
     detect_wine()
 }
 
+#[allow(dead_code)]
 pub(crate) fn detect_whisky_pub() -> RuntimeInfo {
     detect_whisky()
 }
 
+#[allow(dead_code)]
 pub(crate) fn detect_crossover_pub() -> RuntimeInfo {
     detect_crossover()
 }
 
+#[allow(dead_code)]
 pub(crate) fn detect_gptk_pub() -> RuntimeInfo {
     detect_gptk()
 }

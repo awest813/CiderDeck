@@ -74,6 +74,7 @@ pub struct ProviderValidation {
 ///
 /// Implementors must be `Send + Sync` so they can be used across thread
 /// boundaries in async Tauri commands.
+#[allow(dead_code)]
 pub trait RuntimeProvider: Send + Sync {
     /// Stable machine identifier (e.g. `"wine"`, `"crossover"`)
     fn id(&self) -> &str;
@@ -134,7 +135,7 @@ fn wine_compatible_validate(config: &ProviderConfig) -> ProviderValidation {
     if config
         .target_executable
         .as_deref()
-        .map_or(true, str::is_empty)
+        .is_none_or(str::is_empty)
     {
         errors.push("Target executable is required.".to_string());
     }
@@ -394,11 +395,11 @@ impl RuntimeProvider for GptkProvider {
         if config
             .target_executable
             .as_deref()
-            .map_or(true, str::is_empty)
+            .is_none_or(str::is_empty)
         {
             errors.push("Target executable is required.".to_string());
         }
-        if config.container_path.as_deref().map_or(true, str::is_empty) {
+        if config.container_path.as_deref().is_none_or(str::is_empty) {
             errors.push("Container (bottle) path is required for GPTK.".to_string());
         }
         ProviderValidation {
@@ -494,14 +495,14 @@ impl RuntimeProvider for CustomProvider {
         if config
             .runtime_executable
             .as_deref()
-            .map_or(true, str::is_empty)
+            .is_none_or(str::is_empty)
         {
             errors.push("Runtime executable path is required for a custom provider.".to_string());
         }
         if config
             .target_executable
             .as_deref()
-            .map_or(true, str::is_empty)
+            .is_none_or(str::is_empty)
         {
             errors.push("Target executable is required.".to_string());
         }
@@ -592,7 +593,7 @@ impl RuntimeProvider for NativeWindowsProvider {
         if config
             .target_executable
             .as_deref()
-            .map_or(true, str::is_empty)
+            .is_none_or(str::is_empty)
         {
             errors.push("Target executable is required.".to_string());
         }
