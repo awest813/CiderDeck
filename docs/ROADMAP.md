@@ -100,10 +100,10 @@ Remaining for v0.4 (future iterations):
 - Quick runtime switching ("Try with…") from `GameDetailPanel`
 - Rollback-safe preset apply via toast undo
 
-**Phase B** ✅ Complete — one-click toggles from the game library:
+**Phase B** ✅ Complete — one-click toggles in profile forms and game library:
 
 - Shared `RendererToggleGroup` for profile forms and linked profiles
-- `CompatibilityEnvToggles` for common env recipes (e.g. quiet Wine logs)
+- `CompatibilityEnvToggles` in profile forms and linked profiles (e.g. quiet Wine logs)
 - Undo-safe renderer and env changes from `GameDetailPanel`
 
 **Phase C** ✅ Complete — preset discovery and shared rollback:
@@ -115,6 +115,7 @@ Remaining for v0.4 (future iterations):
 
 ## v0.6 — macOS-Native Compatibility Experience
 
+- Rollback-safe bottle/prefix changes (profile rollback shipped in v0.5)
 - Finder-focused UX polish: drag-and-drop, file associations, native paths
 - Better Apple Silicon vs Intel guidance and runtime requirement surfacing
 - Improved handling for app bundles, mounted installers, and macOS storage

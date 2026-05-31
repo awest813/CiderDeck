@@ -21,6 +21,7 @@ import {
 } from '@/components/profile-forms/shared'
 import { helperLabel } from '@/lib/helper-catalog'
 import { COMPATIBILITY_BACKENDS } from '@/types/Profile'
+import { CompatibilityEnvToggles } from '@/components/CompatibilityEnvToggles'
 import { PresetPickerDialog } from '@/components/PresetPickerDialog'
 import { RendererToggleGroup } from '@/components/RendererToggleGroup'
 import type { CompatibilityPreset } from '@/lib/compatibility-presets'
@@ -707,6 +708,11 @@ export function ProfileForm({
     [bottles, state.backend]
   )
 
+  const compatibilityDraft = useMemo((): CompatibilityProfile | null => {
+    if (!isCompatibilityHelper(helper)) return null
+    return buildProfile(helper, category, state, initial) as CompatibilityProfile
+  }, [helper, category, state, initial])
+
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setState(current => ({ ...current, [key]: value }))
 
@@ -820,6 +826,14 @@ export function ProfileForm({
                 onChange={e => update('envVars', e.target.value)}
               />
             </Field>
+            {compatibilityDraft ? (
+              <CompatibilityEnvToggles
+                profile={compatibilityDraft}
+                onChange={next =>
+                  update('envVars', stringifyEnv(next.environmentVariables))
+                }
+              />
+            ) : null}
             <Field label="Windows version">
               <Select
                 value={state.windowsVersion}

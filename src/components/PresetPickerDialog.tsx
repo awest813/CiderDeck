@@ -5,6 +5,16 @@ import type { ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -64,57 +74,105 @@ export function PresetPickerDialog({
   runtimeKind,
 }: PresetPickerDialogProps) {
   const [open, setOpen] = useState(false)
+  const [pendingPreset, setPendingPreset] =
+    useState<CompatibilityPreset | null>(null)
   const { recommended, other } = groupPresetsByRuntime(runtimeKind)
 
   const handleApply = (preset: CompatibilityPreset) => {
     onApply(preset)
     setOpen(false)
+    setPendingPreset(null)
+  }
+
+  const requestApply = (preset: CompatibilityPreset) => {
+    if (runtimeKind && preset.runtimeKind !== runtimeKind) {
+      setPendingPreset(preset)
+      return
+    }
+    handleApply(preset)
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Apply compatibility preset</DialogTitle>
-          <DialogDescription>
-            Presets apply a known-good runtime configuration to this profile.
-            Your executable path, prefix, and other settings are preserved.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="max-h-[min(24rem,60vh)] space-y-3 overflow-y-auto pt-1">
-          {recommended.length > 0 ? (
-            <div className="space-y-2">
-              {runtimeKind && other.length > 0 ? (
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Apply compatibility preset</DialogTitle>
+            <DialogDescription>
+              Presets apply a known-good runtime configuration to this profile.
+              Your executable path, prefix, and other settings are preserved.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[min(24rem,60vh)] space-y-3 overflow-y-auto pt-1">
+            {recommended.length > 0 ? (
+              <div className="space-y-2">
+                {runtimeKind && other.length > 0 ? (
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Recommended for {helperLabel(runtimeKind as HelperId)}
+                  </p>
+                ) : null}
+                {recommended.map(preset => (
+                  <PresetRow
+                    key={preset.id}
+                    preset={preset}
+                    onApply={requestApply}
+                  />
+                ))}
+              </div>
+            ) : null}
+            {other.length > 0 ? (
+              <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">
-                  Recommended for {helperLabel(runtimeKind as HelperId)}
+                  Other runtimes
                 </p>
+                {other.map(preset => (
+                  <PresetRow
+                    key={preset.id}
+                    preset={preset}
+                    onApply={requestApply}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={pendingPreset !== null}
+        onOpenChange={isOpen => {
+          if (!isOpen) setPendingPreset(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Switch runtime?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingPreset && runtimeKind ? (
+                <>
+                  &ldquo;{pendingPreset.name}&rdquo; targets{' '}
+                  <strong>{helperLabel(pendingPreset.runtimeKind as HelperId)}</strong>
+                  , but this profile uses{' '}
+                  <strong>{helperLabel(runtimeKind as HelperId)}</strong>. Applying
+                  it will change the profile backend and may require a different
+                  bottle or Wine install.
+                </>
               ) : null}
-              {recommended.map(preset => (
-                <PresetRow
-                  key={preset.id}
-                  preset={preset}
-                  onApply={handleApply}
-                />
-              ))}
-            </div>
-          ) : null}
-          {other.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">
-                Other runtimes
-              </p>
-              {other.map(preset => (
-                <PresetRow
-                  key={preset.id}
-                  preset={preset}
-                  onApply={handleApply}
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </DialogContent>
-    </Dialog>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingPreset) handleApply(pendingPreset)
+              }}
+            >
+              Apply preset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
