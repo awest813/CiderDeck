@@ -807,6 +807,14 @@ fn detect_games_in_bottle(bottle: &Bottle) -> Vec<DetectedGame> {
     games
 }
 
+/// Detect installed games inside a single bottle by path.
+#[tauri::command]
+#[specta::specta]
+pub async fn detect_games_for_bottle(bottle_path: String) -> Result<Vec<DetectedGame>, String> {
+    let bottle = get_bottle_meta(bottle_path).await?;
+    Ok(detect_games_in_bottle(&bottle))
+}
+
 /// Detect all installed games from all detected bottles.
 #[tauri::command]
 #[specta::specta]

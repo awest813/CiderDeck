@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { nameFromPath } from '@/lib/game-path-utils'
 import { cn } from '@/lib/utils'
 import type { GameImport, GameImportSource } from '@/lib/bindings'
 import type { CiderDeckProfile } from '@/types/Profile'
@@ -37,14 +38,6 @@ const STEP_LABELS: Record<WizardStep, string> = {
   profiles: 'Profiles',
 }
 const STEPS: WizardStep[] = ['source', 'file', 'details', 'profiles']
-
-function nameFromPath(filePath: string): string {
-  const base = filePath.replace(/\\/g, '/').split('/').pop() ?? filePath
-  return base
-    .replace(/\.(exe|msi|app)$/i, '')
-    .replace(/[._-]+/g, ' ')
-    .trim()
-}
 
 export function PortableGameWizard({
   open,

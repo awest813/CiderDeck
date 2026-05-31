@@ -87,9 +87,13 @@ CrossOver intellectual property and avoiding proprietary feature cloning.
 - Profile linking step with checkbox list; graceful fallback in non-Tauri environments
 - `+ Add Portable` toolbar button in `GameLibraryPage`
 
-Remaining for v0.4 (future iterations):
+**Phase E** ✅ Complete — installer-based game setup:
 
-- Install flows for installer-based games
+- `GameInstallWizard` — guided flow (Installer → Bottle → Install → Discover → Details → Profiles)
+- `run_game_installer` Tauri command — runs `.exe` or `.msi` installers inside a bottle via Wine
+- `detect_games_for_bottle` — post-install executable discovery from a single prefix
+- Optional new-bottle creation, launch-profile auto-creation, and `Installer` import source label
+- `+ Install Game` toolbar button in `GameLibraryPage`
 
 ## v0.5 — Proton-Style Convenience
 

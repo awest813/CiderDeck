@@ -21,6 +21,7 @@ const importSourceLabel: Record<string, string> = {
   Manual: 'Manual',
   AppBundle: 'App Bundle',
   ExeMsi: 'EXE/MSI',
+  Installer: 'Installed',
   SteamLibrary: 'Steam',
   EpicLibrary: 'Epic',
   GogLibrary: 'GOG',
