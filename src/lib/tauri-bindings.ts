@@ -31,6 +31,7 @@ export type {
   Game,
   GameImport,
   GameImportSource,
+  GameInstallerResult,
   JsonValue,
   ProcessOutcome,
   ProfileLogEntry,

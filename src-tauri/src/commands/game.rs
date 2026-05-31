@@ -794,3 +794,107 @@ fn days_to_date(days_since_epoch: u64) -> (u64, u64, u64) {
 fn is_leap(y: u64) -> bool {
     (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
 }
+
+// ============================================================================
+// Installer-based game setup
+// ============================================================================
+
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct GameInstallerResult {
+    pub exit_code: Option<i32>,
+    pub stdout: String,
+    pub stderr: String,
+}
+
+fn wine_binary(runtime: &str) -> &'static str {
+    match runtime {
+        "whisky" => "/Applications/Whisky.app/Contents/MacOS/wine64",
+        "crossover" => "/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine",
+        _ => "wine",
+    }
+}
+
+fn installer_kind(path: &Path) -> Result<&'static str, String> {
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+
+    match ext.as_str() {
+        "msi" => Ok("msi"),
+        "exe" => Ok("exe"),
+        _ => Err("Installer must be a .exe or .msi file.".to_string()),
+    }
+}
+
+/// Run a Windows installer (.exe or .msi) inside the given bottle.
+#[tauri::command]
+#[specta::specta]
+pub async fn run_game_installer(
+    installer_path: String,
+    bottle_path: String,
+    runtime: String,
+) -> Result<GameInstallerResult, String> {
+    let installer = Path::new(&installer_path);
+    if !installer.is_file() {
+        return Err("Installer file not found.".to_string());
+    }
+
+    let bottle = Path::new(&bottle_path);
+    if !bottle.is_dir() {
+        return Err("Bottle path not found.".to_string());
+    }
+
+    let kind = installer_kind(installer)?;
+    let wine = wine_binary(&runtime);
+
+    let mut command = Command::new(wine);
+    command.env("WINEPREFIX", &bottle_path);
+
+    match kind {
+        "msi" => {
+            command.arg("msiexec").arg("/i").arg(&installer_path);
+        }
+        "exe" => {
+            command.arg(&installer_path);
+        }
+        _ => return Err("Unsupported installer type.".to_string()),
+    }
+
+    log::info!(
+        "Running {kind} installer in {runtime} bottle {bottle_path}: {installer_path}"
+    );
+
+    let output = command
+        .output()
+        .map_err(|error| format!("Failed to run installer: {error}"))?;
+
+    Ok(GameInstallerResult {
+        exit_code: output.status.code(),
+        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+    })
+}
+
+#[cfg(test)]
+mod installer_tests {
+    use super::*;
+
+    #[test]
+    fn accepts_exe_and_msi_extensions() {
+        assert_eq!(
+            installer_kind(Path::new("/Games/setup.exe")).unwrap(),
+            "exe"
+        );
+        assert_eq!(
+            installer_kind(Path::new("/Games/setup.msi")).unwrap(),
+            "msi"
+        );
+    }
+
+    #[test]
+    fn rejects_other_extensions() {
+        assert!(installer_kind(Path::new("/Games/readme.txt")).is_err());
+    }
+}

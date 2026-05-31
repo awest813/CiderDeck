@@ -10,6 +10,7 @@ import { GameDetailPanel } from '@/components/GameDetailPanel'
 import { GameImportDialog } from '@/components/GameImportDialog'
 import { DetectedGamesDialog } from '@/components/DetectedGamesDialog'
 import { LauncherImportDialog } from '@/components/LauncherImportDialog'
+import { GameInstallWizard } from '@/components/GameInstallWizard'
 import { PortableGameWizard } from '@/components/PortableGameWizard'
 import { Spinner } from '@/components/ui/spinner'
 import {
@@ -50,6 +51,8 @@ export function GameLibraryPage() {
   const [importKey, setImportKey] = useState(0)
   const [wizardOpen, setWizardOpen] = useState(false)
   const [wizardKey, setWizardKey] = useState(0)
+  const [installWizardOpen, setInstallWizardOpen] = useState(false)
+  const [installWizardKey, setInstallWizardKey] = useState(0)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [filterTag, setFilterTag] = useState<string | null>(null)
   const [detectOpen, setDetectOpen] = useState(false)
@@ -102,6 +105,10 @@ export function GameLibraryPage() {
   }
 
   const handleUpdateProfile = (profile: CiderDeckProfile) => {
+    upsertProfile.mutate({ profiles, profile })
+  }
+
+  const handleCreateProfile = (profile: CiderDeckProfile) => {
     upsertProfile.mutate({ profiles, profile })
   }
 
@@ -224,6 +231,16 @@ export function GameLibraryPage() {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              onClick={() => {
+                setInstallWizardKey(k => k + 1)
+                setInstallWizardOpen(true)
+              }}
+              variant="secondary"
+            >
+              + Install Game
+            </Button>
             <Button
               type="button"
               onClick={() => {
@@ -449,6 +466,15 @@ export function GameLibraryPage() {
         open={wizardOpen}
         onOpenChange={setWizardOpen}
         onImport={handleImport}
+        profiles={profiles}
+      />
+
+      <GameInstallWizard
+        key={`install-wizard-${installWizardKey}`}
+        open={installWizardOpen}
+        onOpenChange={setInstallWizardOpen}
+        onImport={handleImport}
+        onCreateProfile={handleCreateProfile}
         profiles={profiles}
       />
     </main>

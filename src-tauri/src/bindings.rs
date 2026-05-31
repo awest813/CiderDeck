@@ -44,6 +44,7 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         game::detect_steam_games,
         game::detect_epic_games,
         game::detect_gog_games,
+        game::run_game_installer,
         profile::list_profiles,
         profile::save_profiles,
         profile::migrate_from_local_storage,
