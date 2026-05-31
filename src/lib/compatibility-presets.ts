@@ -4,6 +4,7 @@ import type { RuntimeKind } from '@/runtimes/types'
 import type { CompatibilityProfile } from '@/types/Profile'
 import crossoverPreset from '@/presets/crossover-default.json'
 import dxmtPreset from '@/presets/dx11-dxmt.json'
+import fallout3GotyPreset from '@/presets/fallout-3-goty.json'
 import gptkPreset from '@/presets/gptk-experimental.json'
 import whiskyPreset from '@/presets/whisky-dxmt.json'
 import wineBasicPreset from '@/presets/wine-basic.json'
@@ -14,12 +15,17 @@ export interface CompatibilityPreset {
   name: string
   description: string
   runtimeKind: RuntimeKind
+  /** Case-insensitive substrings; preset is prioritized when the game title contains any. */
+  gameTitlePatterns?: string[]
   env?: Record<string, string>
   renderer?: CompatibilityProfile['renderer']
+  windowsVersion?: CompatibilityProfile['windowsVersion']
+  dllOverrides?: Record<string, string>
   launchArgs?: string[]
 }
 
 export const COMPATIBILITY_PRESETS: readonly CompatibilityPreset[] = [
+  fallout3GotyPreset as CompatibilityPreset,
   crossoverPreset as CompatibilityPreset,
   dxmtPreset as CompatibilityPreset,
   gptkPreset as CompatibilityPreset,
@@ -30,6 +36,17 @@ export const COMPATIBILITY_PRESETS: readonly CompatibilityPreset[] = [
 
 export const getPreset = (id: string): CompatibilityPreset | undefined =>
   COMPATIBILITY_PRESETS.find(p => p.id === id)
+
+export const presetMatchesGameTitle = (
+  preset: CompatibilityPreset,
+  gameTitle: string
+): boolean => {
+  const normalized = gameTitle.trim().toLowerCase()
+  if (!normalized || !preset.gameTitlePatterns?.length) return false
+  return preset.gameTitlePatterns.some(pattern =>
+    normalized.includes(pattern.toLowerCase())
+  )
+}
 
 export interface PresetGroups {
   recommended: CompatibilityPreset[]
@@ -53,6 +70,31 @@ export const groupPresetsByRuntime = (
   return { recommended, other }
 }
 
+export interface PresetPickerGroups extends PresetGroups {
+  /** Game-specific presets shown first when the title matches. */
+  priority: CompatibilityPreset[]
+}
+
+export const groupPresetsForPicker = (options?: {
+  runtimeKind?: RuntimeKind
+  gameTitle?: string
+}): PresetPickerGroups => {
+  const gameTitle = options?.gameTitle?.trim() ?? ''
+  const priority = gameTitle
+    ? COMPATIBILITY_PRESETS.filter(preset =>
+        presetMatchesGameTitle(preset, gameTitle)
+      )
+    : []
+  const priorityIds = new Set(priority.map(preset => preset.id))
+  const { recommended, other } = groupPresetsByRuntime(options?.runtimeKind)
+
+  return {
+    priority,
+    recommended: recommended.filter(preset => !priorityIds.has(preset.id)),
+    other: other.filter(preset => !priorityIds.has(preset.id)),
+  }
+}
+
 /**
  * Merges a preset into a compatibility profile.
  * - env vars: preset values are merged over existing profile env (preserving
@@ -69,6 +111,10 @@ export const applyPreset = (
   runtimeProviderId:
     preset.runtimeKind as CompatibilityProfile['runtimeProviderId'],
   renderer: preset.renderer ?? profile.renderer,
+  windowsVersion: preset.windowsVersion ?? profile.windowsVersion,
+  dllOverrides: preset.dllOverrides
+    ? { ...(profile.dllOverrides ?? {}), ...preset.dllOverrides }
+    : profile.dllOverrides,
   environmentVariables: {
     ...(profile.environmentVariables ?? {}),
     ...(preset.env ?? {}),

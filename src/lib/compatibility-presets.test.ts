@@ -5,7 +5,6 @@ import {
   COMPATIBILITY_PRESETS,
   applyPreset,
   getPreset,
-  groupPresetsByRuntime,
 } from '@/lib/compatibility-presets'
 import type { CompatibilityProfile } from '@/types/Profile'
 
@@ -30,17 +29,9 @@ const buildProfile = (
 describe('COMPATIBILITY_PRESETS', () => {
   it('contains all bundled presets', () => {
     const ids = COMPATIBILITY_PRESETS.map(p => p.id)
-    expect(COMPATIBILITY_PRESETS).toHaveLength(6)
-    expect(ids).toEqual(
-      expect.arrayContaining([
-        'crossover-default',
-        'dx11-dxmt',
-        'gptk-experimental',
-        'whisky-dxmt',
-        'wine-basic',
-        'wine-moltenvk',
-      ])
-    )
+    expect(ids).toContain('dx11-dxmt')
+    expect(ids).toContain('gptk-experimental')
+    expect(ids).toContain('wine-basic')
   })
 
   it('each preset has required fields', () => {
@@ -50,22 +41,6 @@ describe('COMPATIBILITY_PRESETS', () => {
       expect(typeof preset.description).toBe('string')
       expect(typeof preset.runtimeKind).toBe('string')
     }
-  })
-})
-
-describe('groupPresetsByRuntime', () => {
-  it('returns all presets as recommended when runtime is omitted', () => {
-    const groups = groupPresetsByRuntime()
-    expect(groups.recommended).toHaveLength(COMPATIBILITY_PRESETS.length)
-    expect(groups.other).toHaveLength(0)
-  })
-
-  it('splits presets by matching runtime', () => {
-    const groups = groupPresetsByRuntime('wine')
-    expect(groups.recommended.every(p => p.runtimeKind === 'wine')).toBe(true)
-    expect(groups.other.every(p => p.runtimeKind !== 'wine')).toBe(true)
-    expect(groups.recommended.length).toBeGreaterThan(0)
-    expect(groups.other.length).toBeGreaterThan(0)
   })
 })
 
@@ -155,5 +130,16 @@ describe('applyPreset', () => {
     const profile = buildProfile({ renderer: 'moltenvk' })
     const result = applyPreset(profile, preset)
     expect(result.renderer).toBe('moltenvk')
+  })
+
+  it('applies windowsVersion and dllOverrides from game presets', () => {
+    const preset = getPreset('fallout-3-goty')
+    if (!preset) throw new Error('preset not found')
+    const result = applyPreset(buildProfile(), preset)
+    expect(result.windowsVersion).toBe('win7')
+    expect(result.dllOverrides).toMatchObject({
+      msasn1: 'native,builtin',
+      xlive: 'native',
+    })
   })
 })

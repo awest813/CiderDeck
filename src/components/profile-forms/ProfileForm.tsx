@@ -156,10 +156,15 @@ const applyPresetToFormState = (
 ): FormState => {
   const existingEnv = parseEnvText(state.envVars) ?? {}
   const mergedEnv = { ...existingEnv, ...(preset.env ?? {}) }
+  const mergedDll = { ...parseEnvText(state.dllOverrides), ...(preset.dllOverrides ?? {}) }
   return {
     ...state,
     backend: preset.runtimeKind as CompatibilityBackend,
     renderer: preset.renderer ?? state.renderer,
+    windowsVersion: preset.windowsVersion ?? state.windowsVersion,
+    dllOverrides: stringifyEnv(
+      Object.keys(mergedDll).length > 0 ? mergedDll : undefined
+    ),
     envVars: stringifyEnv(mergedEnv),
     launchArgs:
       preset.launchArgs !== undefined

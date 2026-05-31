@@ -372,6 +372,7 @@ export function GameDetailPanel({
                             </Button>
                           }
                           runtimeKind={getCurrentRuntimeBackend(profile)}
+                          gameTitle={game.title}
                           onApply={preset => handleApplyPreset(profile, preset)}
                         />
                       ) : null}
