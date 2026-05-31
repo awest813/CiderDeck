@@ -1,0 +1,10 @@
+{
+  "id": "wine-moltenvk",
+  "name": "Wine + MoltenVK",
+  "description": "Vulkan-forward Wine preset using MoltenVK on Apple Silicon.",
+  "runtimeKind": "wine",
+  "env": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "moltenvk"
+}

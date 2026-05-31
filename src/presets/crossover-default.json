@@ -1,0 +1,10 @@
+{
+  "id": "crossover-default",
+  "name": "CrossOver Default",
+  "description": "Stable CrossOver preset with quiet logs for everyday Windows apps.",
+  "runtimeKind": "crossover",
+  "env": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "wined3d"
+}

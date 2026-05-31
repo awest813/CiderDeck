@@ -1,0 +1,10 @@
+{
+  "id": "whisky-dxmt",
+  "name": "Whisky + DXMT",
+  "description": "Whisky runtime with DXMT for DirectX 11 titles on Apple Silicon.",
+  "runtimeKind": "whisky",
+  "env": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "dxmt"
+}

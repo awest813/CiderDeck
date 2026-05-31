@@ -12,23 +12,59 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import type { HelperId } from '@/types/Profile'
 import { helperLabel } from '@/lib/helper-catalog'
 import {
-  COMPATIBILITY_PRESETS,
+  groupPresetsByRuntime,
   type CompatibilityPreset,
 } from '@/lib/compatibility-presets'
+import type { HelperId } from '@/types/Profile'
+import type { RuntimeKind } from '@/runtimes/types'
 
 interface PresetPickerDialogProps {
   trigger: ReactNode
   onApply: (preset: CompatibilityPreset) => void
+  /** When set, matching presets are shown first under "Recommended". */
+  runtimeKind?: RuntimeKind
+}
+
+function PresetRow({
+  preset,
+  onApply,
+}: {
+  preset: CompatibilityPreset
+  onApply: (preset: CompatibilityPreset) => void
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-lg border p-3">
+      <div className="min-w-0 space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{preset.name}</span>
+          <Badge variant="secondary" className="text-xs">
+            {helperLabel(preset.runtimeKind as HelperId)}
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">{preset.description}</p>
+      </div>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="shrink-0"
+        onClick={() => onApply(preset)}
+      >
+        Apply
+      </Button>
+    </div>
+  )
 }
 
 export function PresetPickerDialog({
   trigger,
   onApply,
+  runtimeKind,
 }: PresetPickerDialogProps) {
   const [open, setOpen] = useState(false)
+  const { recommended, other } = groupPresetsByRuntime(runtimeKind)
 
   const handleApply = (preset: CompatibilityPreset) => {
     onApply(preset)
@@ -46,34 +82,37 @@ export function PresetPickerDialog({
             Your executable path, prefix, and other settings are preserved.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-2 pt-1">
-          {COMPATIBILITY_PRESETS.map(preset => (
-            <div
-              key={preset.id}
-              className="flex items-start justify-between gap-3 rounded-lg border p-3"
-            >
-              <div className="min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{preset.name}</span>
-                  <Badge variant="secondary" className="text-xs">
-                    {helperLabel(preset.runtimeKind as HelperId)}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {preset.description}
+        <div className="max-h-[min(24rem,60vh)] space-y-3 overflow-y-auto pt-1">
+          {recommended.length > 0 ? (
+            <div className="space-y-2">
+              {runtimeKind && other.length > 0 ? (
+                <p className="text-xs font-medium text-muted-foreground">
+                  Recommended for {helperLabel(runtimeKind as HelperId)}
                 </p>
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="shrink-0"
-                onClick={() => handleApply(preset)}
-              >
-                Apply
-              </Button>
+              ) : null}
+              {recommended.map(preset => (
+                <PresetRow
+                  key={preset.id}
+                  preset={preset}
+                  onApply={handleApply}
+                />
+              ))}
             </div>
-          ))}
+          ) : null}
+          {other.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Other runtimes
+              </p>
+              {other.map(preset => (
+                <PresetRow
+                  key={preset.id}
+                  preset={preset}
+                  onApply={handleApply}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

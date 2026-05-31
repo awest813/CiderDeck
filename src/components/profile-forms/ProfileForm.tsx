@@ -22,7 +22,9 @@ import {
 import { helperLabel } from '@/lib/helper-catalog'
 import { COMPATIBILITY_BACKENDS } from '@/types/Profile'
 import { PresetPickerDialog } from '@/components/PresetPickerDialog'
+import { RendererToggleGroup } from '@/components/RendererToggleGroup'
 import type { CompatibilityPreset } from '@/lib/compatibility-presets'
+import { normalizeRenderer } from '@/lib/compatibility-toggles'
 import type {
   AlephOneProfile,
   CiderDeckProfile,
@@ -146,15 +148,6 @@ const isCompatibilityHelper = (
   helper: HelperId
 ): helper is CompatibilityBackend =>
   COMPATIBILITY_BACKENDS.some(backend => backend === helper)
-
-const RENDERER_OPTIONS: { value: FormState['renderer']; label: string }[] = [
-  { value: '', label: 'Auto' },
-  { value: 'wined3d', label: 'wined3d' },
-  { value: 'dxmt', label: 'dxmt' },
-  { value: 'd3dmetal', label: 'd3dmetal' },
-  { value: 'moltenvk', label: 'moltenvk' },
-  { value: 'auto', label: 'auto' },
-]
 
 const applyPresetToFormState = (
   state: FormState,
@@ -724,9 +717,14 @@ export function ProfileForm({
   }
 
   const handleApplyPreset = (preset: CompatibilityPreset) => {
+    const previous = state
     setState(current => applyPresetToFormState(current, preset))
     toast.success(`Applied "${preset.name}"`, {
       description: 'Review the updated fields and save to keep these settings.',
+      action: {
+        label: 'Undo',
+        onClick: () => setState(previous),
+      },
     })
   }
 
@@ -748,6 +746,7 @@ export function ProfileForm({
                     Apply preset…
                   </Button>
                 }
+                runtimeKind={state.backend}
                 onApply={handleApplyPreset}
               />
             </div>
@@ -838,23 +837,12 @@ export function ProfileForm({
               </Select>
             </Field>
             <Field label="Renderer">
-              <div className="flex flex-wrap gap-1.5">
-                {RENDERER_OPTIONS.map(({ value, label }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => update('renderer', value)}
-                    className={cn(
-                      'rounded border px-2.5 py-1 text-xs font-medium transition-colors',
-                      state.renderer === value
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground'
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <RendererToggleGroup
+                value={normalizeRenderer(
+                  state.renderer === '' ? undefined : state.renderer
+                )}
+                onChange={renderer => update('renderer', renderer ?? '')}
+              />
             </Field>
             <Field label="DLL overrides (DLL=mode per line)">
               <Textarea
