@@ -14,7 +14,9 @@ CiderDeck tracks compatibility per game so users can document what works, what f
 
 - **Wine**: General compatibility layer for running Windows applications
 - **CrossOver**: Commercial Wine distribution with bottles and curated fixes
-- **Whisky**: macOS-focused Wine/GPTK wrapper
+- **Whisky**: macOS-focused Wine/GPTK wrapper (**archived — no longer maintained
+  as of 2026; CiderDeck is absorbing key workflow concepts — see
+  [ROADMAP.md](ROADMAP.md) for details**)
 - **GPTK**: Apple Game Porting Toolkit workflow for DirectX translation testing
 
 ## Game-specific presets
