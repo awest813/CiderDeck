@@ -1,0 +1,10 @@
+{
+  "id": "wine-dxmt-homebrew",
+  "name": "Wine + DXMT (Homebrew)",
+  "description": "Wine Staging with DXMT DirectX 11-to-Metal translation, installed via the zzzz465/homebrew-wine-dxmt Homebrew tap. Best for DirectX 11 titles on Apple Silicon.",
+  "runtimeKind": "wine-dxmt",
+  "env": {
+    "WINEDEBUG": "-all"
+  },
+  "renderer": "dxmt"
+}

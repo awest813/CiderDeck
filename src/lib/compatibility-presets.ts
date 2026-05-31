@@ -12,6 +12,7 @@ import fallout3GotyPreset from '@/presets/fallout-3-goty.json'
 import gptkPreset from '@/presets/gptk-experimental.json'
 import whiskyPreset from '@/presets/whisky-dxmt.json'
 import wineBasicPreset from '@/presets/wine-basic.json'
+import wineDxmtHomebrewPreset from '@/presets/wine-dxmt-homebrew.json'
 import wineMoltenvkPreset from '@/presets/wine-moltenvk.json'
 
 export interface CompatibilityPreset {
@@ -39,6 +40,7 @@ export const COMPATIBILITY_PRESETS: readonly CompatibilityPreset[] = [
   gptkPreset as CompatibilityPreset,
   whiskyPreset as CompatibilityPreset,
   wineBasicPreset as CompatibilityPreset,
+  wineDxmtHomebrewPreset as CompatibilityPreset,
   wineMoltenvkPreset as CompatibilityPreset,
 ]
 

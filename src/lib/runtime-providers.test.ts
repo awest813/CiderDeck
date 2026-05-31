@@ -6,6 +6,7 @@ import {
   getRuntimeProvider,
   RUNTIME_PROVIDERS,
   WHISKY_DEFAULT_WINE_PATH,
+  WINE_DXMT_DEFAULT_PATH,
 } from '@/lib/runtime-providers'
 import type { ProviderConfig, RuntimeProvider } from '@/lib/runtime-providers'
 
@@ -30,20 +31,22 @@ function requireProvider(id: string): RuntimeProvider {
 // ---------------------------------------------------------------------------
 
 describe('getRuntimeProvider / RUNTIME_PROVIDERS', () => {
-  it('returns all six providers', () => {
+  it('returns all seven providers', () => {
     const ids = RUNTIME_PROVIDERS.map(p => p.id)
     expect(ids).toContain('wine')
+    expect(ids).toContain('wine-dxmt')
     expect(ids).toContain('crossover')
     expect(ids).toContain('whisky')
     expect(ids).toContain('gptk')
     expect(ids).toContain('custom')
     expect(ids).toContain('native')
-    expect(ids).toHaveLength(6)
+    expect(ids).toHaveLength(7)
   })
 
   it('getRuntimeProvider returns the right provider by id', () => {
     for (const id of [
       'wine',
+      'wine-dxmt',
       'crossover',
       'whisky',
       'gptk',
@@ -244,6 +247,78 @@ describe('WhiskyProvider', () => {
       })
     )
     expect(cmd.env['WINEPREFIX']).toBe('/user/prefix')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// WineDxmt provider
+// ---------------------------------------------------------------------------
+
+describe('WineDxmtProvider', () => {
+  const wineDxmt = requireProvider('wine-dxmt')
+
+  it('defaults program to wine-dxmt path', async () => {
+    const cmd = await wineDxmt.buildLaunchCommand(cfg())
+    expect(cmd.program).toBe(WINE_DXMT_DEFAULT_PATH)
+  })
+
+  it('respects custom runtimeExecutable', async () => {
+    const cmd = await wineDxmt.buildLaunchCommand(
+      cfg({ runtimeExecutable: '/opt/homebrew/bin/wine64' })
+    )
+    expect(cmd.program).toBe('/opt/homebrew/bin/wine64')
+  })
+
+  it('sets WINEPREFIX from containerPath', async () => {
+    const cmd = await wineDxmt.buildLaunchCommand(
+      cfg({ containerPath: '/prefix/wine-dxmt' })
+    )
+    expect(cmd.env['WINEPREFIX']).toBe('/prefix/wine-dxmt')
+  })
+
+  it('does not set WINEPREFIX when containerPath is absent', async () => {
+    const cmd = await wineDxmt.buildLaunchCommand(cfg())
+    expect(cmd.env['WINEPREFIX']).toBeUndefined()
+  })
+
+  it('user env vars take precedence over WINEPREFIX default', async () => {
+    const cmd = await wineDxmt.buildLaunchCommand(
+      cfg({
+        containerPath: '/provider/prefix',
+        envVars: { WINEPREFIX: '/user/prefix' },
+      })
+    )
+    expect(cmd.env['WINEPREFIX']).toBe('/user/prefix')
+  })
+
+  it('args = [targetExecutable, ...launchArgs]', async () => {
+    const cmd = await wineDxmt.buildLaunchCommand(
+      cfg({ launchArgs: ['-fullscreen'] })
+    )
+    expect(cmd.args).toEqual(['/Games/Test/Game.exe', '-fullscreen'])
+  })
+
+  it('sets default WINEDEBUG for quieter logs', async () => {
+    const cmd = await wineDxmt.buildLaunchCommand(cfg())
+    expect(cmd.env['WINEDEBUG']).toBe('-all')
+  })
+
+  it('validate fails when targetExecutable is missing', async () => {
+    const result = await wineDxmt.validate({ targetExecutable: undefined })
+    expect(result.valid).toBe(false)
+    expect(result.errors).not.toHaveLength(0)
+  })
+
+  it('validate passes when targetExecutable is set', async () => {
+    const result = await wineDxmt.validate(cfg())
+    expect(result.valid).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it('buildLaunchCommand throws when targetExecutable is missing', async () => {
+    await expect(
+      wineDxmt.buildLaunchCommand({ targetExecutable: undefined })
+    ).rejects.toThrow()
   })
 })
 
