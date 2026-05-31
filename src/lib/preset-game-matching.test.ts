@@ -11,9 +11,7 @@ import {
 describe('launcherStoreIdTag', () => {
   it('formats store tags for import', () => {
     expect(launcherStoreIdTag('steam', '22370')).toBe('store:steam:22370')
-    expect(launcherStoreIdTag('gog', '1454315831')).toBe(
-      'store:gog:1454315831'
-    )
+    expect(launcherStoreIdTag('gog', '1454315831')).toBe('store:gog:1454315831')
   })
 })
 
@@ -54,7 +52,10 @@ describe('presetMatchesGameContext — Fallout 3 GOTY', () => {
       presetMatchesGameContext(preset(), {
         title: 'Fallout 3',
         importSource: 'EpicLibrary',
-        tags: ['epic', launcherStoreIdTag('epic', 'adeae8bbfc94427db57c7dfecce3f1d4')],
+        tags: [
+          'epic',
+          launcherStoreIdTag('epic', 'adeae8bbfc94427db57c7dfecce3f1d4'),
+        ],
       })
     ).toBe(true)
   })

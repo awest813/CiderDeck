@@ -156,7 +156,10 @@ const applyPresetToFormState = (
 ): FormState => {
   const existingEnv = parseEnvText(state.envVars) ?? {}
   const mergedEnv = { ...existingEnv, ...(preset.env ?? {}) }
-  const mergedDll = { ...parseEnvText(state.dllOverrides), ...(preset.dllOverrides ?? {}) }
+  const mergedDll = {
+    ...parseEnvText(state.dllOverrides),
+    ...(preset.dllOverrides ?? {}),
+  }
   return {
     ...state,
     backend: preset.runtimeKind as CompatibilityBackend,
@@ -715,7 +718,12 @@ export function ProfileForm({
 
   const compatibilityDraft = useMemo((): CompatibilityProfile | null => {
     if (!isCompatibilityHelper(helper)) return null
-    return buildProfile(helper, category, state, initial) as CompatibilityProfile
+    return buildProfile(
+      helper,
+      category,
+      state,
+      initial
+    ) as CompatibilityProfile
   }, [helper, category, state, initial])
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>

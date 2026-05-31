@@ -62,9 +62,7 @@ function PresetRow({
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium">{preset.name}</span>
-          {highlight ? (
-            <Badge className="text-xs">For this game</Badge>
-          ) : null}
+          {highlight ? <Badge className="text-xs">For this game</Badge> : null}
           <Badge variant="secondary" className="text-xs">
             {helperLabel(preset.runtimeKind as HelperId)}
           </Badge>
