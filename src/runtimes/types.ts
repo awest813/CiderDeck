@@ -2,6 +2,7 @@
 
 export type RuntimeKind =
   | 'wine'
+  | 'wine-dxmt'
   | 'crossover'
   | 'whisky'
   | 'gptk'

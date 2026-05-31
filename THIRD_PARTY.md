@@ -22,6 +22,10 @@ those licenses when you install and use them.
 - **CrossOver** — codeweavers.com (commercial)
 - **Whisky** — getwhisky.app (archived; CiderDeck retains detection/launch support for existing installs)
 - **Apple Game Porting Toolkit (GPTK)** — apple.com (Apple proprietary)
+- **Gcenx/game-porting-toolkit** — github.com/Gcenx/game-porting-toolkit — community Wine builds with GPTK patches, distributed via Homebrew
+- **DXMT** (3Shain) — github.com/3Shain/dxmt — Metal-based DirectX 11/10 translation layer for Wine on macOS
+- **homebrew-wine-dxmt** (zzzz465) — github.com/zzzz465/homebrew-wine-dxmt — patched Wine Staging + DXMT Homebrew tap
+- **macos-wine-steam** / Merlot (ByMedion) — github.com/ByMedion/macos-wine-steam — one-click Wine + DXMT + Steam launcher for Apple Silicon
 
 ### Doom-family source ports
 
