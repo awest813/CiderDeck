@@ -305,6 +305,17 @@ async saveBottleNotes(bottlePath: string, notes: string) : Promise<Result<null, 
     else return { status: "error", error: e  as any };
 }
 },
+/**
+ * Persist user-provided bottle configuration in the sidecar file.
+ */
+async saveBottleConfig(bottlePath: string, config: BottleConfig) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("save_bottle_config", { bottlePath, config }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
 async listGames() : Promise<Result<Game[], string>> {
     try {
     return { status: "ok", data: await TAURI_INVOKE("list_games") };
@@ -406,13 +417,25 @@ async migrateFromLocalStorage(profilesJson: string) : Promise<Result<number, str
  */
 export type RuntimeInfo = { id: string; name: string; available: boolean; version: string | null; executable_path: string | null; error: string | null }
 /**
+ * Bottle enhanced sync mode persisted in sidecar metadata.
+ */
+export type BottleEnhancedSync = "Esync" | "Msync"
+/**
+ * Bottle DXVK HUD preset persisted in sidecar metadata.
+ */
+export type BottleDxvkHud = "Fps" | "Partial" | "Full"
+/**
+ * Per-bottle configuration persisted in a sidecar file.
+ */
+export type BottleConfig = { enhanced_sync: BottleEnhancedSync | null; dxvk_async: boolean | null; dxvk_hud: BottleDxvkHud | null; metal_hud: boolean | null; metal_trace: boolean | null; dxr: boolean | null; avx: boolean | null }
+/**
  * Health status of a bottle / prefix.
  */
 export type BottleHealth = "Good" | "Warning" | "Broken"
 /**
  * Info about a detected or managed bottle / prefix.
  */
-export type Bottle = { id: string; name: string; runtime: string; path: string; runtime_version: string | null; architecture: string | null; windows_version: string | null; installed_components: string[]; storage_bytes: number | null; notes: string | null; health: BottleHealth }
+export type Bottle = { id: string; name: string; runtime: string; path: string; runtime_version: string | null; architecture: string | null; windows_version: string | null; installed_components: string[]; storage_bytes: number | null; notes: string | null; config: BottleConfig | null; health: BottleHealth }
 /**
  * Application preferences that persist to disk.
  * Only contains settings that should be saved between sessions.

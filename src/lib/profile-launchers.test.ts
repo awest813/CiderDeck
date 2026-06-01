@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { emptyBottleConfig } from '@/lib/bottle-config'
 import { buildCompatibilityLaunchRequest } from '@/lib/profile-launchers'
+import { commands } from '@/lib/tauri-bindings'
+import type { Bottle } from '@/lib/tauri-bindings'
 import type { CompatibilityProfile } from '@/types/Profile'
 
 const baseProfile = (
@@ -21,7 +24,30 @@ const baseProfile = (
   }
 }
 
+const baseBottle = (overrides: Partial<Bottle> = {}): Bottle => ({
+  id: 'test-bottle',
+  name: 'Test Bottle',
+  runtime: 'wine',
+  path: '/prefix/wine',
+  runtime_version: null,
+  architecture: 'win64',
+  windows_version: 'win10',
+  installed_components: [],
+  storage_bytes: null,
+  notes: null,
+  config: null,
+  health: 'Good',
+  ...overrides,
+})
+
 describe('buildCompatibilityLaunchRequest', () => {
+  beforeEach(() => {
+    vi.mocked(commands.getBottleMeta).mockResolvedValue({
+      status: 'ok',
+      data: baseBottle(),
+    })
+  })
+
   it('builds Wine requests with WINEPREFIX from bottlePath', async () => {
     const request = await buildCompatibilityLaunchRequest(
       baseProfile({
@@ -145,6 +171,39 @@ describe('buildCompatibilityLaunchRequest', () => {
       CIDERDECK_WINDOWS_VERSION: 'win10',
       CIDERDECK_RENDERER: 'dxmt',
       WINEDLLOVERRIDES: 'd3d11=native,builtin;dxgi=native,builtin',
+    })
+  })
+
+  it('merges bottle config env vars before profile overrides', async () => {
+    vi.mocked(commands.getBottleMeta).mockResolvedValue({
+      status: 'ok',
+      data: baseBottle({
+        config: {
+          ...emptyBottleConfig(),
+          enhanced_sync: 'Msync',
+          dxvk_async: true,
+        },
+      }),
+    })
+
+    const request = await buildCompatibilityLaunchRequest(
+      baseProfile({
+        backend: 'wine',
+        helper: 'wine',
+        bottlePath: '/prefix/wine',
+        environmentVariables: {
+          DXVK_ASYNC: '0',
+          CUSTOM_FLAG: '1',
+        },
+      })
+    )
+
+    expect(request.envVars).toMatchObject({
+      WINEPREFIX: '/prefix/wine',
+      WINEESYNC: '1',
+      WINEMSYNC: '1',
+      DXVK_ASYNC: '0',
+      CUSTOM_FLAG: '1',
     })
   })
 })
